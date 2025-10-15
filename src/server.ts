@@ -11,6 +11,11 @@ import app from './app.js';
 import { config } from './config/env.config.js';
 
 /**
+ * Cron jobs for scheduled tasks
+ */
+import { startItemsSyncJob } from './jobs/syncItems.job.js';
+
+/**
  * Prisma client instance for database operations
  */
 const prisma = new PrismaClient({
@@ -61,6 +66,9 @@ const startServer = async (): Promise<void> => {
   try {
     // Test database connection before starting server
     await testDatabaseConnection();
+
+    // Start scheduled jobs
+    startItemsSyncJob();
 
     // Start HTTP server
     const server = app.listen(config.port, () => {
