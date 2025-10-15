@@ -1,0 +1,177 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum ItemRarity {
+  CONSUMER
+  INDUSTRIAL
+  MIL_SPEC
+  RESTRICTED
+  CLASSIFIED
+  COVERT
+  KNIFE
+}
+
+enum ItemStatus {
+  OWNED
+  WITHDRAWN
+}
+
+model User {
+  id        String   @id @default(cuid())
+  steamId   String?  @unique
+  vkId      String?  @unique
+  username  String
+  avatarUrl String?
+  balance   Int      @default(0)
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items        UserItem[]
+  openings     CaseOpening[]
+  transactions Transaction[]
+
+  @@index([steamId])
+  @@index([vkId])
+  @@index([role])
+  @@map("users")
+}
+
+model Case {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  imageUrl    String
+  price       Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items    CaseItem[]
+  openings CaseOpening[]
+
+  @@index([slug])
+  @@index([isActive])
+  @@map("cases")
+}
+
+model Item {
+  id          String     @id @default(cuid())
+  marketHashName String  @unique
+  displayName    String
+  imageUrl    String
+  price       Int
+  rarity      ItemRarity
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  caseItems CaseItem[]
+  userItems UserItem[]
+  openings  CaseOpening[]
+
+  @@index([marketHashName])
+  @@index([rarity])
+  @@map("items")
+}
+
+model CaseItem {
+  id           String   @id @default(cuid())
+  caseId       String
+  itemId       String
+  chancePercent Decimal @db.Decimal(5, 2)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([caseId, itemId])
+  @@index([caseId])
+  @@index([itemId])
+  @@map("case_items")
+}
+
+model UserItem {
+  id         String     @id @default(cuid())
+  userId     String
+  itemId     String
+  acquiredAt DateTime   @default(now())
+  status     ItemStatus @default(OWNED)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([itemId])
+  @@index([status])
+  @@map("user_items")
+}
+
+model CaseOpening {
+  id       String   @id @default(cuid())
+  userId   String
+  caseId   String
+  itemId   String
+  openedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([caseId])
+  @@index([openedAt])
+  @@map("case_openings")
+}
+
+model Transaction {
+  id          String            @id @default(cuid())
+  userId      String
+  amount      Int
+  type        TransactionType
+  status      TransactionStatus @default(PENDING)
+  paymentId   String?           @unique
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([paymentId])
+  @@index([createdAt])
+  @@map("transactions")
+}
+
+model Settings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
