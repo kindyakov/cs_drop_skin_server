@@ -1,4 +1,4 @@
-import { type Request, type Response, type NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import passport from '../config/passport.config.js';
 import { generateToken } from '../utils/jwt.util.js';
 import { successResponse } from '../utils/response.util.js';
@@ -15,7 +15,9 @@ export const steamCallback = [
   (req: Request, res: Response) => {
     const user = req.user as any;
     const token = generateToken({ userId: user.id, role: user.role });
-    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/success?token=${token}`);
+    res.redirect(
+      `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/success?token=${token}`
+    );
   },
 ];
 
@@ -26,11 +28,17 @@ export const vkCallback = [
   (req: Request, res: Response) => {
     const user = req.user as any;
     const token = generateToken({ userId: user.id, role: user.role });
-    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/success?token=${token}`);
+    res.redirect(
+      `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/success?token=${token}`
+    );
   },
 ];
 
-export const getCurrentUser = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+export const getCurrentUser = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user!.userId },
