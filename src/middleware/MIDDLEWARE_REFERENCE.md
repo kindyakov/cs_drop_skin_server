@@ -216,6 +216,29 @@ app.get('/api/moderation', authenticate, requireRole(UserRoles.ADMIN, UserRoles.
 - **Использование:** middleware для POST /payments/create
 - **Ошибка:** ValidationError при невалидных данных
 
+#### **`validateCreateCase`** - Валидация создания кейса (Admin)
+- **Проверяет:**
+  - `name` - обязателен, строка, 3-100 символов
+  - `imageUrl` - обязателен, строка
+  - `price` - обязателен, положительное число в копейках
+  - `description` - опциональная строка
+  - `isActive` - опциональный boolean
+- **Использование:** middleware для POST /admin/cases
+
+#### **`validateUpdateCase`** - Валидация обновления кейса (Admin)
+- **Проверяет:**
+  - Все поля опциональные
+  - Те же правила валидации что и в validateCreateCase
+- **Использование:** middleware для PUT /admin/cases/:id
+
+#### **`validateAddItemsToCase`** - Валидация добавления предметов (Admin)
+- **Проверяет:**
+  - `items` - непустой массив
+  - `items[].itemId` - обязателен, строка
+  - `items[].chancePercent` - обязателен, float от 0.01 до 100
+- **Использование:** middleware для POST /admin/cases/:id/items
+- **Примечание:** Сумма шансов валидируется в сервисе (= 100%)
+
 ### Примеры использования
 
 ```typescript

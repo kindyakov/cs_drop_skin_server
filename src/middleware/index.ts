@@ -81,7 +81,10 @@ import {
 import {
   validateCaseOpening,
   validatePayment,
-  handleValidationErrors
+  handleValidationErrors,
+  validateCreateCase,
+  validateUpdateCase,
+  validateAddItemsToCase
 } from './validation.middleware.js';
 
 // ==============================================
@@ -137,7 +140,10 @@ export {
   // Validation
   validateCaseOpening,
   validatePayment,
-  handleValidationErrors
+  handleValidationErrors,
+  validateCreateCase,
+  validateUpdateCase,
+  validateAddItemsToCase
 };
 
 // ==============================================

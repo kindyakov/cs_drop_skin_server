@@ -4,6 +4,7 @@ import caseRoutes from './case.routes.js';
 import caseOpeningRoutes from './caseOpening.routes.js';
 import userRoutes from './user.routes.js';
 import paymentRoutes from './payment.routes.js';
+import adminRoutes from './admin/index.js';
 
 // Основной роутер приложения
 const router = Router();
@@ -42,9 +43,13 @@ router.use('/v1/users', userRoutes);
 router.use('/v1/payments', paymentRoutes);
 
 // ==============================================
+// ADMIN ROUTES - V1
+// ==============================================
+router.use('/v1/admin', adminRoutes);
+
+// ==============================================
 // FUTURE ROUTES (placeholders)
 // ==============================================
-// router.use('/v1/admin', adminRoutes);
 // router.use('/v1/transactions', transactionRoutes);
 // router.use('/v1/market', marketRoutes);
 

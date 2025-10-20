@@ -40,6 +40,14 @@ POST /api/v1/payments/webhook          → YooKassa webhook (публичный)
 GET  /api/v1/payments/transactions     → История транзакций (JWT)
 ```
 
+### **🔐 Admin - Cases**
+```
+POST   /api/v1/admin/cases           → Создать кейс (Admin + JWT + rate limit)
+PUT    /api/v1/admin/cases/:id       → Обновить кейс (Admin + JWT + rate limit)
+DELETE /api/v1/admin/cases/:id       → Удалить кейс (Admin + JWT + rate limit)
+POST   /api/v1/admin/cases/:id/items → Добавить предметы в кейс (Admin + JWT + rate limit)
+```
+
 ### **📝 Health Check**
 ```
 GET  /health                     → Статус сервера

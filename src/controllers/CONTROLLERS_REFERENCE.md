@@ -650,6 +650,166 @@ Response:
 
 ---
 
+## 🔐 Admin Case Controller (`admin/adminCase.controller.ts`)
+
+### Функции управления кейсами (Admin)
+
+#### **Admin Case Operations**
+- **`createCase`** - Создание нового кейса
+  - Использует `AuthenticatedRequest` (требуется admin права)
+  - Извлекает `ICreateCaseInput` из `req.body`
+  - Вызывает `adminCaseService.createCase(input)`
+  - Возвращает созданный кейс со статусом 201
+  - Использует `successResponse(res, newCase, 'Кейс успешно создан', 201)`
+
+- **`updateCase`** - Обновление существующего кейса
+  - Извлекает `id` из `req.params`
+  - Извлекает `IUpdateCaseInput` из `req.body`
+  - Вызывает `adminCaseService.updateCase(id, input)`
+  - Автоматически обновляет slug при изменении name
+  - Использует `successResponse(res, updatedCase, 'Кейс успешно обновлён')`
+
+- **`deleteCase`** - Soft delete кейса
+  - Извлекает `id` из `req.params`
+  - Вызывает `adminCaseService.deleteCase(id)`
+  - Устанавливает isActive = false
+  - Использует `successResponse(res, null, 'Кейс успешно удалён')`
+
+- **`addItemsToCase`** - Добавление предметов в кейс
+  - Извлекает `id` из `req.params`
+  - Извлекает `IAddItemsToCaseInput` из `req.body`
+  - Вызывает `adminCaseService.addItemsToCase(id, input)`
+  - Валидирует сумму шансов = 100% в сервисе
+  - Возвращает кейс с добавленными предметами
+
+### 🛠 Техническая реализация
+
+#### **Dependencies:**
+```typescript
+import { Response, NextFunction } from 'express';
+import { AuthenticatedRequest } from '../../middleware/auth.middleware.js';
+import * as adminCaseService from '../../services/admin/adminCase.service.js';
+import { successResponse } from '../../utils/index.js';
+```
+
+#### **Route Protection:**
+- **Все роуты требуют:**
+  - `authenticate` - JWT аутентификация
+  - `requireAdmin` - роль ADMIN
+  - `adminRateLimiter` - 50 req/min
+- **Валидация:**
+  - `validateCreateCase` для POST /
+  - `validateUpdateCase` для PUT /:id
+  - `validateAddItemsToCase` для POST /:id/items
+
+### 📍 Подключенные роуты (из `admin/adminCase.routes.ts`)
+```typescript
+// Все роуты с префиксом /api/v1/admin/cases
+router.post('/', authenticate, requireAdmin, adminRateLimiter, validateCreateCase, controller.createCase);
+router.put('/:id', authenticate, requireAdmin, adminRateLimiter, validateUpdateCase, controller.updateCase);
+router.delete('/:id', authenticate, requireAdmin, adminRateLimiter, controller.deleteCase);
+router.post('/:id/items', authenticate, requireAdmin, adminRateLimiter, validateAddItemsToCase, controller.addItemsToCase);
+```
+
+### 🌐 API Endpoint Examples
+
+#### **Создание кейса:**
+```bash
+POST /api/v1/admin/cases
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+Content-Type: application/json
+
+{
+  "name": "Danger Zone Case",
+  "description": "Новый кейс с редкими предметами",
+  "imageUrl": "/images/cases/danger-zone.png",
+  "price": 24900,
+  "isActive": true
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "id": "case123",
+    "name": "Danger Zone Case",
+    "slug": "danger-zone-case",
+    "description": "Новый кейс с редкими предметами",
+    "imageUrl": "/images/cases/danger-zone.png",
+    "price": 24900,
+    "isActive": true,
+    "createdAt": "2025-10-17T19:30:00.000Z"
+  },
+  "message": "Кейс успешно создан"
+}
+```
+
+#### **Обновление кейса:**
+```bash
+PUT /api/v1/admin/cases/case123
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+Content-Type: application/json
+
+{
+  "price": 29900,
+  "isActive": false
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "id": "case123",
+    "price": 29900,
+    "isActive": false,
+    ...
+  },
+  "message": "Кейс успешно обновлён"
+}
+```
+
+#### **Добавление предметов в кейс:**
+```bash
+POST /api/v1/admin/cases/case123/items
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+Content-Type: application/json
+
+{
+  "items": [
+    { "itemId": "item1", "chancePercent": 79.92 },
+    { "itemId": "item2", "chancePercent": 15.98 },
+    { "itemId": "item3", "chancePercent": 3.2 },
+    { "itemId": "item4", "chancePercent": 0.64 },
+    { "itemId": "item5", "chancePercent": 0.26 }
+  ]
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "id": "case123",
+    "name": "Danger Zone Case",
+    "items": [...]
+  },
+  "message": "Предметы успешно добавлены в кейс"
+}
+```
+
+### ⚠️ Особенности реализации
+
+#### **Безопасность:**
+- **Triple protection:** authenticate + requireAdmin + adminRateLimiter
+- **Детальное логирование** всех админских действий
+- **Валидация входных данных** через express-validator
+
+#### **Бизнес-логика:**
+- **Автоматическая генерация slug** из name
+- **Soft delete** - кейсы не удаляются из БД
+- **Валидация шансов = 100%** при добавлении предметов
+
+---
+
 ## 🚀 Future Controllers (Планируемые)
 
 ### **AdminPanelController** - админ функции
