@@ -1123,12 +1123,149 @@ Response:
 
 ---
 
+## 📊 Admin Stats Controller (`admin/adminStats.controller.ts`)
+
+### Функции статистики (Admin)
+
+#### **Admin Stats Operations**
+- **`getDashboardStats`** - Получение статистики дашборда
+  - Вызывает `adminStatsService.getDashboardStats()`
+  - Возвращает агрегированную статистику по всем метрикам
+  - Использует `successResponse(res, stats)`
+
+- **`getPopularCases`** - Получение популярных кейсов
+  - Извлекает `limit` из query параметров (по умолчанию 10)
+  - Вызывает `adminStatsService.getPopularCases(limit)`
+  - Возвращает топ кейсов по количеству открытий
+  - Использует `successResponse(res, popularCases)`
+
+- **`getRecentTransactions`** - Получение недавних транзакций
+  - Извлекает `limit` из query параметров (по умолчанию 20)
+  - Вызывает `adminStatsService.getRecentTransactions(limit)`
+  - Возвращает последние транзакции с деталями
+  - Использует `successResponse(res, transactions)`
+
+### 🛠 Техническая реализация
+
+#### **Dependencies:**
+```typescript
+import { Request, Response, NextFunction } from 'express';
+import * as adminStatsService from '../../services/admin/adminStats.service.js';
+import { successResponse } from '../../utils/index.js';
+```
+
+#### **Route Protection:**
+- **Все роуты требуют:**
+  - `authenticate` - JWT аутентификация
+  - `requireAdmin` - роль ADMIN
+  - `adminRateLimiter` - 50 req/min
+
+### 📍 Подключенные роуты (из `admin/adminStats.routes.ts`)
+```typescript
+// Все роуты с префиксом /api/v1/admin/stats
+router.get('/dashboard', controller.getDashboardStats);
+router.get('/popular-cases', controller.getPopularCases);
+router.get('/recent-transactions', controller.getRecentTransactions);
+```
+
+### 🌐 API Endpoint Examples
+
+#### **Статистика дашборда:**
+```bash
+GET /api/v1/admin/stats/dashboard
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+
+Response:
+{
+  "success": true,
+  "data": {
+    "users": {
+      "total": 1523,
+      "newToday": 15,
+      "newThisWeek": 87
+    },
+    "revenue": {
+      "total": 15430000,
+      "today": 234000,
+      "thisWeek": 1450000,
+      "thisMonth": 3890000
+    },
+    "openings": {
+      "total": 8945,
+      "today": 156,
+      "thisWeek": 892
+    },
+    "cases": {
+      "total": 25,
+      "active": 20
+    }
+  }
+}
+```
+
+#### **Популярные кейсы:**
+```bash
+GET /api/v1/admin/stats/popular-cases?limit=5
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+
+Response:
+{
+  "success": true,
+  "data": [
+    {
+      "id": "case1",
+      "name": "Wildfire Case",
+      "imageUrl": "/images/cases/wildfire.png",
+      "openingsCount": 1234,
+      "revenue": 30726600
+    },
+    ...
+  ]
+}
+```
+
+#### **Недавние транзакции:**
+```bash
+GET /api/v1/admin/stats/recent-transactions?limit=10
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+
+Response:
+{
+  "success": true,
+  "data": [
+    {
+      "id": "trans1",
+      "userId": "user123",
+      "username": "john_doe",
+      "type": "DEPOSIT",
+      "amount": 50000,
+      "status": "COMPLETED",
+      "createdAt": "2025-10-20T19:30:00.000Z"
+    },
+    ...
+  ]
+}
+```
+
+### ⚠️ Особенности реализации
+
+#### **Производительность:**
+- **Оптимизированные запросы** - параллельное выполнение
+- **Агрегация на уровне БД** - минимальная нагрузка
+- **Кэширование** - можно добавить в будущем
+
+#### **Метрики:**
+- **Все суммы в копейках** - консистентность с остальным API
+- **Временные периоды** - динамический расчёт от текущей даты
+- **Только завершённые транзакции** - COMPLETED status
+
+---
+
 ## 🚀 Future Controllers (Планируемые)
 
 ### **AdminPanelController** - админ функции
 - CRUD операций для кейсов
 - Управление предметами
-- Аналитика и статистика
 
 ---
 

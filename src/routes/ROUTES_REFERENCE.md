@@ -71,6 +71,13 @@ PATCH /api/v1/admin/users/:id/toggle-block   → Блокировка/разбл
 PATCH /api/v1/admin/users/:id/balance        → Обновить баланс (Admin + JWT + rate limit)
 ```
 
+### **📊 Admin - Stats**
+```
+GET  /api/v1/admin/stats/dashboard            → Статистика дашборда (Admin + JWT)
+GET  /api/v1/admin/stats/popular-cases        → Популярные кейсы (Admin + JWT)
+GET  /api/v1/admin/stats/recent-transactions  → Недавние транзакции (Admin + JWT)
+```
+
 ### **📝 Health Check**
 ```
 GET  /health                     → Статус сервера
