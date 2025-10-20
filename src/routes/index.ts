@@ -3,6 +3,7 @@ import authRoutes from './auth.routes.js';
 import caseRoutes from './case.routes.js';
 import caseOpeningRoutes from './caseOpening.routes.js';
 import userRoutes from './user.routes.js';
+import paymentRoutes from './payment.routes.js';
 
 // Основной роутер приложения
 const router = Router();
@@ -34,6 +35,11 @@ router.use('/v1/openings', caseOpeningRoutes);
 // USERS ROUTES - V1
 // ==============================================
 router.use('/v1/users', userRoutes);
+
+// ==============================================
+// PAYMENTS ROUTES - V1
+// ==============================================
+router.use('/v1/payments', paymentRoutes);
 
 // ==============================================
 // FUTURE ROUTES (placeholders)

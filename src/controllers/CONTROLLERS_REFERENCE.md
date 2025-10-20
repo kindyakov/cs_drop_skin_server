@@ -534,12 +534,123 @@ Response:
 
 ---
 
-## 🚀 Future Controllers (Планируемые)
+## 💳 Payment Controller (`payment.controller.ts`)
 
-### **PaymentController** - транзакции
-- Интеграция с платежными системами
-- Пополнение баланса
-- Обработка транзакций
+### Функции работы с платежами
+
+#### **Payment Operations**
+- **`createPayment`** - Создание платежа для пополнения баланса
+  - Использует `AuthenticatedRequest` для доступа к `userId`
+  - Извлекает `{ amount }` из `req.body`
+  - Вызывает `paymentService.createPayment()`
+  - Возвращает `{ confirmationUrl, transactionId }` для редиректа на оплату
+  - Использует `successResponse(res, result, 'Платёж создан')`
+
+- **`webhookHandler`** - Обработка webhook от YooKassa
+  - Публичный endpoint (без авторизации)
+  - Извлекает `IYooKassaWebhook` из `req.body`
+  - Вызывает `paymentService.processWebhook(webhook)`
+  - Возвращает `res.status(200).send('OK')` - требование YooKassa
+  - Автоматически зачисляет средства при успешной оплате
+
+- **`getUserTransactions`** - История транзакций пользователя
+  - Использует `AuthenticatedRequest` для доступа к `userId`
+  - Извлекает `limit` из `req.query` (по умолчанию 50)
+  - Делает Prisma запрос к `transaction` таблице
+  - Фильтрует по `userId` и сортирует по `createdAt` (desc)
+  - Использует `successResponse(res, transactions)`
+
+### 🛠 Техническая реализация
+
+#### **Dependencies:**
+```typescript
+import { Request, Response, NextFunction } from 'express';
+import { PrismaClient } from '@prisma/client';
+import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
+import * as paymentService from '../services/payment.service.js';
+import { successResponse } from '../utils/index.js';
+import type { IYooKassaWebhook } from '../types/payment.types.js';
+
+const prisma = new PrismaClient();
+```
+
+#### **Route Protection:**
+- **`createPayment`** - Требует JWT + paymentRateLimiter (5 req/min)
+- **`webhookHandler`** - Публичный (YooKassa webhook endpoint)
+- **`getUserTransactions`** - Требует JWT аутентификацию
+
+### 📍 Подключенные роуты (из `payment.routes.ts`)
+```typescript
+// Создание платежа
+router.post('/create', authenticate, paymentRateLimiter, paymentController.createPayment);
+
+// YooKassa webhook
+router.post('/webhook', paymentController.webhookHandler);
+
+// История транзакций
+router.get('/transactions', authenticate, paymentController.getUserTransactions);
+```
+
+### 🌐 API Endpoint Examples
+
+#### **Создание платежа:**
+```bash
+POST /api/v1/payments/create
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+Content-Type: application/json
+
+{
+  "amount": 10000
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "confirmationUrl": "https://yoomoney.ru/checkout/payments/v2/...",
+    "transactionId": "trans123"
+  },
+  "message": "Платёж создан"
+}
+```
+
+#### **История транзакций:**
+```bash
+GET /api/v1/payments/transactions?limit=20
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+
+Response:
+{
+  "success": true,
+  "data": [
+    {
+      "id": "trans123",
+      "userId": "user456",
+      "amount": 10000,
+      "type": "DEPOSIT",
+      "status": "COMPLETED",
+      "paymentId": "yookassa_payment_id",
+      "createdAt": "2025-10-17T19:30:00.000Z"
+    }
+  ]
+}
+```
+
+### ⚠️ Особенности реализации
+
+#### **Безопасность:**
+- **paymentRateLimiter** (5 req/min) для защиты от спама
+- **JWT аутентификация** для create и transactions endpoints
+- **Webhook без аутентификации** - YooKassa сервисный endpoint
+
+#### **Интеграция с YooKassa:**
+- **createPayment** создаёт платёж и возвращает URL для редиректа
+- **webhookHandler** обрабатывает уведомления автоматически
+- **Транзакции** атомарны через Prisma `$transaction`
+
+---
+
+## 🚀 Future Controllers (Планируемые)
 
 ### **AdminPanelController** - админ функции
 - CRUD операций для кейсов

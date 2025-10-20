@@ -3,7 +3,7 @@ import { Strategy as SteamStrategy } from 'passport-steam';
 import { Strategy as VKontakteStrategy } from 'passport-vkontakte';
 import { PrismaClient } from '@prisma/client';
 import { config } from './env.config.js';
-import logger from '../middleware/logger.middleware.js';
+import logger from '@middleware/logger.middleware.js';
 
 const prisma = new PrismaClient();
 
@@ -18,12 +18,12 @@ passport.use(
       try {
         // Извлекаем steamId из identifier (последняя часть URL)
         const steamId = identifier.split('/').pop() || '';
-        
+
         logger.info(`Steam OAuth attempt for steamId: ${steamId}`);
-        
+
         // Ищем пользователя в базе данных
         let user = await prisma.user.findUnique({
-          where: { steamId }
+          where: { steamId },
         });
 
         if (user) {
@@ -38,13 +38,12 @@ passport.use(
             steamId,
             username: profile.displayName,
             avatarUrl: profile.photos[2]?.value || null,
-            role: 'USER'
-          }
+            role: 'USER',
+          },
         });
 
         logger.info(`New user created: ${user.username} (${user.id})`);
         return done(null, user);
-
       } catch (error) {
         logger.error('Steam OAuth error:', error);
         return done(error, undefined);
@@ -63,12 +62,12 @@ passport.use(
     async (_accessToken: any, _refreshToken: any, _params: any, profile: any, done: any) => {
       try {
         const vkId = profile.id;
-        
+
         logger.info(`VK OAuth attempt for vkId: ${vkId}`);
-        
+
         // Ищем пользователя в базе данных
         let user = await prisma.user.findUnique({
-          where: { vkId }
+          where: { vkId },
         });
 
         if (user) {
@@ -83,13 +82,12 @@ passport.use(
             vkId,
             username: profile.displayName,
             avatarUrl: profile.photos?.[0]?.value || null,
-            role: 'USER'
-          }
+            role: 'USER',
+          },
         });
 
         logger.info(`New user created: ${user.username} (${user.id})`);
         return done(null, user);
-
       } catch (error) {
         logger.error('VK OAuth error:', error);
         return done(error, undefined);
@@ -105,7 +103,7 @@ passport.serializeUser((user: any, done) => {
 passport.deserializeUser(async (id: string, done) => {
   try {
     const user = await prisma.user.findUnique({
-      where: { id }
+      where: { id },
     });
 
     if (!user) {

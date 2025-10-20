@@ -33,6 +33,13 @@ GET  /api/v1/users/inventory      → Инвентарь пользовател�
 GET  /api/v1/users/history        → История открытий кейсов (JWT)
 ```
 
+### **💳 Payments**
+```
+POST /api/v1/payments/create           → Создание платежа (JWT + rate limit)
+POST /api/v1/payments/webhook          → YooKassa webhook (публичный)
+GET  /api/v1/payments/transactions     → История транзакций (JWT)
+```
+
 ### **📝 Health Check**
 ```
 GET  /health                     → Статус сервера
