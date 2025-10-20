@@ -10,6 +10,7 @@ export interface ICreateCaseInput {
   description?: string;
   imageUrl: string;
   price: number; // в копейках
+  categoryId?: string; // ДОБАВЬ ЭТО ПОЛЕ (опционально)
   isActive?: boolean; // по умолчанию true
 }
 
@@ -21,6 +22,7 @@ export interface IUpdateCaseInput {
   description?: string;
   imageUrl?: string;
   price?: number;
+  categoryId?: string; // ДОБАВЬ ЭТО ПОЛЕ (опционально, можно установить null)
   isActive?: boolean;
 }
 

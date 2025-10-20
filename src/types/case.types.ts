@@ -9,6 +9,7 @@ export interface ICase {
   imageUrl: string;
   price: number; // в копейках
   isActive: boolean;
+  categoryId: string | null; // ID категории (может быть NULL)
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,4 +24,15 @@ export interface ICaseItemWithDetails {
   id: string;
   chancePercent: number;
   item: IItem;
+}
+
+/**
+ * Кейс с информацией о категории
+ */
+export interface ICaseWithCategory extends ICase {
+  category: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
 }

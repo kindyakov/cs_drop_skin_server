@@ -59,6 +59,26 @@ model User {
   @@map("users")
 }
 
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  imageUrl    String?
+  order       Int      @default(0) // Порядок сортировки
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Связи
+  cases       Case[]
+
+  @@index([slug])
+  @@index([isActive])
+  @@index([order])
+  @@map("categories")
+}
+
 model Case {
   id          String   @id @default(cuid())
   name        String
@@ -67,6 +87,10 @@ model Case {
   imageUrl    String
   price       Int
   isActive    Boolean  @default(true)
+  
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -75,6 +99,7 @@ model Case {
 
   @@index([slug])
   @@index([isActive])
+  @@index([categoryId])
   @@map("cases")
 }
 

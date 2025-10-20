@@ -33,6 +33,7 @@ export const createCase = async (input: ICreateCaseInput): Promise<ICase> => {
         description: input.description,
         imageUrl: input.imageUrl,
         price: input.price,
+        categoryId: input.categoryId,
         isActive: input.isActive ?? true,
       },
     });
@@ -80,6 +81,7 @@ export const updateCase = async (
         description: input.description,
         imageUrl: input.imageUrl,
         price: input.price,
+        categoryId: input.categoryId,
         isActive: input.isActive,
       },
     });

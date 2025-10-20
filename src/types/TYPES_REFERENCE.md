@@ -105,6 +105,81 @@
 
 ---
 
+## 📁 Category Types (`category.types.ts`)
+
+### Основные интерфейсы
+
+#### **`ICategory`** - Базовая категория
+```typescript
+{
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  imageUrl: string | null;
+  order: number; // Порядок сортировки
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+#### **`ICategoryWithCount`** - Категория с количеством кейсов
+```typescript
+extends ICategory {
+  _count: {
+    cases: number;
+  };
+}
+```
+
+#### **`ICategoryWithCases`** - Категория с кейсами
+```typescript
+extends ICategory {
+  cases: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    imageUrl: string;
+    price: number;
+    isActive: boolean;
+  }>;
+}
+```
+
+### Admin интерфейсы
+
+#### **`ICreateCategoryInput`** - Создание категории
+```typescript
+{
+  name: string;
+  description?: string;
+  imageUrl?: string;
+  order?: number;
+  isActive?: boolean;
+}
+```
+
+#### **`IUpdateCategoryInput`** - Обновление категории
+```typescript
+{
+  name?: string;
+  description?: string;
+  imageUrl?: string;
+  order?: number;
+  isActive?: boolean;
+}
+```
+
+#### **`IAssignCasesToCategoryInput`** - Назначение кейсов
+```typescript
+{
+  caseIds: string[]; // массив ID кейсов
+}
+```
+
+---
+
 ## 🎮 Case Types (`case.types.ts`)
 
 ### Кейсы
@@ -118,6 +193,7 @@
     imageUrl: string;
     price: number; // в копейках
     isActive: boolean;
+    categoryId: string | null; // ID категории (может быть NULL)
     createdAt: Date;
     updatedAt: Date;
   }
@@ -136,6 +212,17 @@
     id: string;
     chancePercent: number;
     item: IItem;
+  }
+  ```
+
+- **`ICaseWithCategory`** - Кейс с информацией о категории
+  ```typescript
+  extends ICase {
+    category: {
+      id: string;
+      name: string;
+      slug: string;
+    } | null;
   }
   ```
 
