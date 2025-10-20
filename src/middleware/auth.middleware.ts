@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt.util.js';
 import { UnauthorizedError, ForbiddenError } from '../utils/errors.util.js';
 import { UserRoles, UserRole } from '../types/constants.js';
+import { logger } from './logger.middleware.js';
 
 // Определяем тип для пользователя в middleware
 interface AuthenticatedRequest extends Request {
@@ -55,7 +56,35 @@ export const requireRole = (...roles: UserRole[]) => {
   };
 };
 
-export const requireAdmin = requireRole(UserRoles.ADMIN);
+/**
+ * Middleware для проверки admin роли с детальным логированием
+ */
+export const requireAdmin = (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
+  if (!req.user) {
+    logger.warn('Попытка доступа к admin роуту без авторизации', {
+      ip: req.ip,
+      path: req.path,
+    });
+    throw new UnauthorizedError('Требуется авторизация');
+  }
+
+  if (req.user.role !== UserRoles.ADMIN) {
+    logger.warn('Попытка доступа к admin роуту без прав', {
+      userId: req.user.userId,
+      role: req.user.role,
+      ip: req.ip,
+      path: req.path,
+    });
+    throw new ForbiddenError('Доступ запрещён. Требуются права администратора');
+  }
+
+  logger.info('Admin доступ разрешён', {
+    userId: req.user.userId,
+    path: req.path,
+  });
+
+  next();
+};
 
 // Экспортируем AuthenticatedRequest для использования в других файлах
 export type { AuthenticatedRequest };

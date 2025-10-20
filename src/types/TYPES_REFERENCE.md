@@ -349,6 +349,121 @@
 
 ---
 
+## 🔐 Admin Types (`admin.types.ts`)
+
+### Admin Case Management
+
+#### **`ICreateCaseInput`** - Создание кейса
+```typescript
+{
+  name: string;
+  description?: string;
+  imageUrl: string;
+  price: number; // в копейках
+  isActive?: boolean;
+}
+```
+
+#### **`IUpdateCaseInput`** - Обновление кейса
+```typescript
+{
+  name?: string;
+  description?: string;
+  imageUrl?: string;
+  price?: number;
+  isActive?: boolean;
+}
+```
+
+#### **`IAddItemToCaseInput`** - Добавление предмета в кейс
+```typescript
+{
+  itemId: string;
+  chancePercent: number; // 0.01 - 100
+}
+```
+
+#### **`IAddItemsToCaseInput`** - Массив предметов для кейса
+```typescript
+{
+  items: IAddItemToCaseInput[];
+}
+```
+
+### Admin User Management
+
+#### **`IGetUsersFilters`** - Фильтры списка пользователей
+```typescript
+{
+  role?: 'USER' | 'ADMIN';
+  search?: string;
+  limit?: number;
+  offset?: number;
+}
+```
+
+#### **`IUpdateUserBalanceInput`** - Обновление баланса
+```typescript
+{
+  amount: number; // в копейках, может быть отрицательным
+  reason?: string;
+}
+```
+
+### Admin Statistics
+
+#### **`IAdminDashboardStats`** - Статистика дашборда
+```typescript
+{
+  users: {
+    total: number;
+    newToday: number;
+    newThisWeek: number;
+  };
+  revenue: {
+    total: number;
+    today: number;
+    thisWeek: number;
+    thisMonth: number;
+  };
+  openings: {
+    total: number;
+    today: number;
+    thisWeek: number;
+  };
+  cases: {
+    total: number;
+    active: number;
+  };
+}
+```
+
+#### **`IPopularCase`** - Популярный кейс
+```typescript
+{
+  id: string;
+  name: string;
+  imageUrl: string;
+  openingsCount: number;
+  revenue: number;
+}
+```
+
+#### **`IRecentTransaction`** - Недавняя транзакция
+```typescript
+{
+  id: string;
+  userId: string;
+  username: string;
+  type: 'DEPOSIT' | 'WITHDRAWAL';
+  amount: number;
+  status: 'PENDING' | 'COMPLETED' | 'FAILED';
+  createdAt: Date;
+}
+```
+
+---
+
 ## 🔌 Express Types (`express.d.ts`)
 
 ### Расширение Request
@@ -380,6 +495,12 @@ import {
   IPayment, ICreatePaymentRequest, ICreatePaymentResponse,
   ITopupRequest, IBalanceTransaction, IPaymentFilters 
 } from './payment.types.js';
+// Admin types
+import {
+  ICreateCaseInput, IUpdateCaseInput, IAddItemToCaseInput, IAddItemsToCaseInput,
+  IGetUsersFilters, IUpdateUserBalanceInput,
+  IAdminDashboardStats, IPopularCase, IRecentTransaction
+} from './admin.types.js';
 
 // В коде
 const userRole: UserRole = UserRoles.ADMIN;
@@ -390,4 +511,119 @@ const caseOpening: ICaseOpening = { /* ... */ };
 const payment: IPayment = { /* ... */ };
 const paymentStatus: PaymentStatus = PaymentStatuses.PENDING;
 const paymentMethod: PaymentMethod = PaymentMethods.BANK_CARD;
+```
+
+---
+
+## 🔐 Admin Types (`admin.types.ts`)
+
+### Admin Case Management
+
+#### **`ICreateCaseInput`** - Создание кейса
+```typescript
+{
+  name: string;
+  description?: string;
+  imageUrl: string;
+  price: number; // в копейках
+  isActive?: boolean;
+}
+```
+
+#### **`IUpdateCaseInput`** - Обновление кейса
+```typescript
+{
+  name?: string;
+  description?: string;
+  imageUrl?: string;
+  price?: number;
+  isActive?: boolean;
+}
+```
+
+#### **`IAddItemToCaseInput`** - Добавление предмета в кейс
+```typescript
+{
+  itemId: string;
+  chancePercent: number; // 0.01 - 100
+}
+```
+
+#### **`IAddItemsToCaseInput`** - Массив предметов для кейса
+```typescript
+{
+  items: IAddItemToCaseInput[];
+}
+```
+
+### Admin User Management
+
+#### **`IGetUsersFilters`** - Фильтры списка пользователей
+```typescript
+{
+  role?: 'USER' | 'ADMIN';
+  search?: string;
+  limit?: number;
+  offset?: number;
+}
+```
+
+#### **`IUpdateUserBalanceInput`** - Обновление баланса
+```typescript
+{
+  amount: number; // в копейках, может быть отрицательным
+  reason?: string;
+}
+```
+
+### Admin Statistics
+
+#### **`IAdminDashboardStats`** - Статистика дашборда
+```typescript
+{
+  users: {
+    total: number;
+    newToday: number;
+    newThisWeek: number;
+  };
+  revenue: {
+    total: number;
+    today: number;
+    thisWeek: number;
+    thisMonth: number;
+  };
+  openings: {
+    total: number;
+    today: number;
+    thisWeek: number;
+  };
+  cases: {
+    total: number;
+    active: number;
+  };
+}
+```
+
+#### **`IPopularCase`** - Популярный кейс
+```typescript
+{
+  id: string;
+  name: string;
+  imageUrl: string;
+  openingsCount: number;
+  revenue: number;
+}
+```
+
+#### **`IRecentTransaction`** - Недавняя транзакция
+```typescript
+{
+  id: string;
+  userId: string;
+  username: string;
+  type: 'DEPOSIT' | 'WITHDRAWAL';
+  amount: number;
+  status: 'PENDING' | 'COMPLETED' | 'FAILED';
+  createdAt: Date;
+}
 ```

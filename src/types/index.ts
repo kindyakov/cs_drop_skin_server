@@ -7,3 +7,5 @@ export * from './case.types';
 export * from './item.types';
 export * from './caseOpening.types';
 export * from './payment.types';
+// Admin types
+export * from './admin.types.js';

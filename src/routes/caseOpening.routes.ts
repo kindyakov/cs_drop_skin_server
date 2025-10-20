@@ -1,13 +1,14 @@
 import { Router, type RequestHandler } from 'express';
 import * as caseOpeningController from '../controllers/caseOpening.controller.js';
-import { authenticate, caseOpeningRateLimiter } from '../middleware/index.js';
+import { authenticate, caseOpeningRateLimiter, validateCaseOpening } from '../middleware/index.js';
 
 const router = Router();
 
-// Открытие кейса (защищено + rate limit)
+// Открытие кейса (защищено + валидация + rate limit)
 router.post(
   '/open',
   authenticate,
+  validateCaseOpening,
   caseOpeningRateLimiter,
   caseOpeningController.openCase as RequestHandler
 );

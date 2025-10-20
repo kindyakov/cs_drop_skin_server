@@ -1,13 +1,14 @@
 import { Router, type RequestHandler } from 'express';
 import * as paymentController from '../controllers/payment.controller.js';
-import { authenticate, paymentRateLimiter } from '../middleware/index.js';
+import { authenticate, paymentRateLimiter, validatePayment } from '../middleware/index.js';
 
 const router = Router();
 
-// Создание платежа (защищено + rate limit)
+// Создание платежа (защищено + валидация + rate limit)
 router.post(
   '/create',
   authenticate,
+  validatePayment,
   paymentRateLimiter,
   paymentController.createPayment as RequestHandler
 );

@@ -76,6 +76,15 @@ import {
 } from './auth.middleware.js';
 
 // ==============================================
+// VALIDATION MIDDLEWARE
+// ==============================================
+import {
+  validateCaseOpening,
+  validatePayment,
+  handleValidationErrors
+} from './validation.middleware.js';
+
+// ==============================================
 // RE-EXPORT ALL IMPORTS
 // ==============================================
 export {
@@ -124,7 +133,11 @@ export {
   // Auth
   authenticate,
   requireRole,
-  requireAdmin
+  requireAdmin,
+  // Validation
+  validateCaseOpening,
+  validatePayment,
+  handleValidationErrors
 };
 
 // ==============================================
