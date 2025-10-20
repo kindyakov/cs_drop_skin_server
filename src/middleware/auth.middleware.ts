@@ -3,6 +3,7 @@ import { verifyToken } from '../utils/jwt.util.js';
 import { UnauthorizedError, ForbiddenError } from '../utils/errors.util.js';
 import { UserRoles, UserRole } from '../types/constants.js';
 import { logger } from './logger.middleware.js';
+import { prisma } from '../config/database.js';
 
 // Определяем тип для пользователя в middleware
 interface AuthenticatedRequest extends Request {
@@ -84,6 +85,35 @@ export const requireAdmin = (req: AuthenticatedRequest, _res: Response, next: Ne
   });
 
   next();
+};
+
+/**
+ * Middleware для проверки блокировки пользователя
+ */
+export const checkUserBlocked = async (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return next();
+  }
+
+  try {
+    // Получить пользователя из БД для проверки актуального статуса
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: { isBlocked: true },
+    });
+
+    if ((user as any)?.isBlocked) {
+      logger.warn('Заблокированный пользователь пытался получить доступ', {
+        userId: req.user.userId,
+        path: req.path,
+      });
+      throw new ForbiddenError('Ваш аккаунт заблокирован. Обратитесь к администратору');
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
 };
 
 // Экспортируем AuthenticatedRequest для использования в других файлах

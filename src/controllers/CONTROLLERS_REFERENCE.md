@@ -991,6 +991,138 @@ Response:
 
 ---
 
+## 👥 Admin User Controller (`admin/adminUser.controller.ts`)
+
+### Функции управления пользователями (Admin)
+
+#### **Admin User Operations**
+- **`getAllUsers`** - Получение списка пользователей
+  - Извлекает фильтры из query параметров
+  - Вызывает `adminUserService.getAllUsers(filters)`
+  - Поддерживает фильтрацию по role и search
+  - Поддерживает пагинацию через limit/offset
+  - Использует `successResponse(res, users)`
+
+- **`toggleUserBlock`** - Блокировка/разблокировка пользователя
+  - Извлекает `id` из `req.params`
+  - Вызывает `adminUserService.toggleUserBlock(id)`
+  - Переключает статус isBlocked
+  - Динамическое сообщение в зависимости от нового статуса
+  - Использует `successResponse(res, updatedUser, message)`
+
+- **`updateUserBalance`** - Обновление баланса пользователя
+  - Извлекает `id` из `req.params`
+  - Извлекает `IUpdateUserBalanceInput` из `req.body`
+  - Вызывает `adminUserService.updateUserBalance(id, input)`
+  - Создаёт транзакцию для истории
+  - Использует `successResponse(res, updatedUser, 'Баланс пользователя обновлён')`
+
+### 🛠 Техническая реализация
+
+#### **Dependencies:**
+```typescript
+import { Request, Response, NextFunction } from 'express';
+import { AuthenticatedRequest } from '../../middleware/auth.middleware.js';
+import * as adminUserService from '../../services/admin/adminUser.service.js';
+import { successResponse } from '../../utils/index.js';
+import type { IGetUsersFilters } from '../../types/admin.types.js';
+```
+
+#### **Route Protection:**
+- **Все роуты требуют:**
+  - `authenticate` - JWT аутентификация
+  - `requireAdmin` - роль ADMIN
+  - `adminRateLimiter` - 50 req/min
+- **Валидация:**
+  - `validateUpdateUserBalance` для PATCH /:id/balance
+
+### 📍 Подключенные роуты (из `admin/adminUser.routes.ts`)
+```typescript
+// Все роуты с префиксом /api/v1/admin/users
+router.get('/', controller.getAllUsers);
+router.patch('/:id/toggle-block', controller.toggleUserBlock);
+router.patch('/:id/balance', authenticate, requireAdmin, adminRateLimiter, validateUpdateUserBalance, controller.updateUserBalance);
+```
+
+### 🌐 API Endpoint Examples
+
+#### **Получение списка пользователей:**
+```bash
+GET /api/v1/admin/users?role=USER&search=john&limit=20&offset=0
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+
+Response:
+{
+  "success": true,
+  "data": [
+    {
+      "id": "user1",
+      "username": "john_doe",
+      "avatarUrl": "/avatars/john.png",
+      "balance": 50000,
+      "role": "USER",
+      "isBlocked": false,
+      "createdAt": "2025-10-17T19:30:00.000Z"
+    }
+  ]
+}
+```
+
+#### **Блокировка пользователя:**
+```bash
+PATCH /api/v1/admin/users/user1/toggle-block
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+
+Response:
+{
+  "success": true,
+  "data": {
+    "id": "user1",
+    "username": "john_doe",
+    "isBlocked": true,
+    ...
+  },
+  "message": "Пользователь заблокирован"
+}
+```
+
+#### **Обновление баланса:**
+```bash
+PATCH /api/v1/admin/users/user1/balance
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+Content-Type: application/json
+
+{
+  "amount": 10000,
+  "reason": "Компенсация за баг"
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "id": "user1",
+    "username": "john_doe",
+    "balance": 60000,
+    ...
+  },
+  "message": "Баланс пользователя обновлён"
+}
+```
+
+### ⚠️ Особенности реализации
+
+#### **Безопасность:**
+- **Защита от блокировки админов** - нельзя заблокировать ADMIN
+- **Проверка баланса** - не допускает отрицательных значений
+- **История операций** - все изменения баланса записываются
+
+#### **Блокировка:**
+- Заблокированные пользователи проверяются через `checkUserBlocked` middleware
+- Блокировка применяется к критичным операциям (открытие кейсов, платежи)
+
+---
+
 ## 🚀 Future Controllers (Планируемые)
 
 ### **AdminPanelController** - админ функции

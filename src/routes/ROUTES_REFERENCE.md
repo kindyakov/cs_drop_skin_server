@@ -64,6 +64,13 @@ DELETE /api/v1/admin/categories/:id          → Удалить категори
 POST   /api/v1/admin/categories/:id/assign-cases → Назначить кейсы (Admin + JWT + rate limit)
 ```
 
+### **👥 Admin - Users**
+```
+GET   /api/v1/admin/users                    → Список пользователей с фильтрами (Admin + JWT)
+PATCH /api/v1/admin/users/:id/toggle-block   → Блокировка/разблокировка (Admin + JWT + rate limit)
+PATCH /api/v1/admin/users/:id/balance        → Обновить баланс (Admin + JWT + rate limit)
+```
+
 ### **📝 Health Check**
 ```
 GET  /health                     → Статус сервера

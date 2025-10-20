@@ -135,6 +135,20 @@
     - `UnauthorizedError` если пользователь не авторизован
     - `ForbiddenError` если роль не ADMIN
 
+### User Blocking
+- **`checkUserBlocked`** - Проверка блокировки пользователя
+- Проверяет актуальный статус isBlocked в БД
+- Блокирует доступ заблокированным пользователям
+- Используется на критичных операциях (открытие кейсов, платежи)
+- **Ошибки:**
+  - `ForbiddenError` если пользователь заблокирован
+- **Логирование:** Записывает попытки доступа заблокированных пользователей
+- **Использование:**
+```typescript
+  router.post('/open', authenticate, checkUserBlocked, controller.openCase);
+  router.post('/create', authenticate, checkUserBlocked, controller.createPayment);
+```
+
 ### TypeScript Типизация
 - **`AuthenticatedRequest`** - Расширяет Express.Request с типизированным user
 - Строгие типы для `userId: string` и `role: UserRole`
@@ -267,6 +281,12 @@ router.post('/create', authenticate, validatePayment, paymentRateLimiter, contro
   - `caseIds` - непустой массив строк
   - Каждый элемент массива должен быть строкой
 - **Использование:** middleware для POST /admin/categories/:id/assign-cases
+
+#### **`validateUpdateUserBalance`** - Валидация обновления баланса (Admin)
+- **Проверяет:**
+  - `amount` - обязателен, целое число в копейках
+  - `reason` - опциональная строка, max 500 символов
+- **Использование:** middleware для PATCH /admin/users/:id/balance
 
 ```
 

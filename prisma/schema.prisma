@@ -46,6 +46,7 @@ model User {
   avatarUrl String?
   balance   Int      @default(0)
   role      UserRole @default(USER)
+  isBlocked Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -56,6 +57,7 @@ model User {
   @@index([steamId])
   @@index([vkId])
   @@index([role])
+  @@index([isBlocked])
   @@map("users")
 }
 

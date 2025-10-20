@@ -1,6 +1,6 @@
 import { Router, type RequestHandler } from 'express';
 import * as paymentController from '../controllers/payment.controller.js';
-import { authenticate, paymentRateLimiter, validatePayment } from '../middleware/index.js';
+import { authenticate, paymentRateLimiter, validatePayment, checkUserBlocked } from '../middleware/index.js';
 
 const router = Router();
 
@@ -8,6 +8,7 @@ const router = Router();
 router.post(
   '/create',
   authenticate,
+  checkUserBlocked as any,
   validatePayment,
   paymentRateLimiter,
   paymentController.createPayment as RequestHandler

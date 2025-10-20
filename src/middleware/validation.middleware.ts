@@ -171,6 +171,24 @@ export const validateAssignCases = [
   handleValidationErrors,
 ];
 
+/**
+ * Валидация для обновления баланса пользователя (Admin)
+ */
+export const validateUpdateUserBalance = [
+  body('amount')
+    .notEmpty()
+    .withMessage('amount обязателен')
+    .isInt()
+    .withMessage('amount должен быть целым числом в копейках'),
+  body('reason')
+    .optional()
+    .isString()
+    .withMessage('reason должен быть строкой')
+    .isLength({ max: 500 })
+    .withMessage('reason не должен превышать 500 символов'),
+  handleValidationErrors,
+];
+
 
 
 

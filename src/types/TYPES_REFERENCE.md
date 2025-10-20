@@ -78,6 +78,7 @@
     avatarUrl: string | null;
     balance: number;
     role: UserRole;
+    isBlocked: boolean; // Статус блокировки
     createdAt: Date;
     updatedAt: Date;
   }
@@ -91,6 +92,7 @@
     avatarUrl: string | null;
     balance: number;
     role: UserRole;
+    isBlocked: boolean; // Статус блокировки
     createdAt: Date;
   }
   ```

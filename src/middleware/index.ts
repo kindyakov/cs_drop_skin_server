@@ -72,7 +72,8 @@ import {
 import {
   authenticate,
   requireRole,
-  requireAdmin
+  requireAdmin,
+  checkUserBlocked
 } from './auth.middleware.js';
 
 // ==============================================
@@ -88,6 +89,7 @@ import {
   validateCreateCategory,
   validateUpdateCategory,
   validateAssignCases,
+  validateUpdateUserBalance,
 } from './validation.middleware.js';
 
 // ==============================================
@@ -140,6 +142,7 @@ export {
   authenticate,
   requireRole,
   requireAdmin,
+  checkUserBlocked,
   // Validation
   validateCaseOpening,
   validatePayment,
@@ -149,7 +152,8 @@ export {
   validateAddItemsToCase,
   validateCreateCategory,
   validateUpdateCategory,
-  validateAssignCases
+  validateAssignCases,
+  validateUpdateUserBalance
 };
 
 // ==============================================

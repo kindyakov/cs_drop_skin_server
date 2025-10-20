@@ -9,6 +9,7 @@ export interface IUser {
   avatarUrl: string | null;
   balance: number;
   role: UserRole;
+  isBlocked: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -20,6 +21,7 @@ export interface IUserProfile {
   avatarUrl: string | null;
   balance: number;
   role: UserRole;
+  isBlocked: boolean;
   createdAt: Date;
 }
 
