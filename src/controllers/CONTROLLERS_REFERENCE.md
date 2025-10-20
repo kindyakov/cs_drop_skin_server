@@ -810,6 +810,187 @@ Response:
 
 ---
 
+## 📁 Admin Category Controller (`admin/adminCategory.controller.ts`)
+
+### Функции управления категориями (Admin)
+
+#### **Admin Category Operations**
+- **`getAllCategories`** - Получение всех категорий
+  - Публичный для админов (не требует AuthenticatedRequest)
+  - Вызывает `adminCategoryService.getAllCategories()`
+  - Возвращает массив категорий с количеством кейсов
+  - Сортирует по полю order (ASC)
+  - Использует `successResponse(res, categories)`
+
+- **`getCategoryById`** - Получение категории с кейсами
+  - Извлекает `id` из `req.params`
+  - Вызывает `adminCategoryService.getCategoryById(id)`
+  - Возвращает категорию с полным списком кейсов
+  - Использует `successResponse(res, category)`
+
+- **`createCategory`** - Создание новой категории
+  - Использует `AuthenticatedRequest` (требуется admin права)
+  - Извлекает `ICreateCategoryInput` из `req.body`
+  - Вызывает `adminCategoryService.createCategory(input)`
+  - Автоматически генерирует slug из name
+  - Возвращает созданную категорию со статусом 201
+  - Использует `successResponse(res, newCategory, 'Категория успешно создана', 201)`
+
+- **`updateCategory`** - Обновление категории
+  - Извлекает `id` из `req.params`
+  - Извлекает `IUpdateCategoryInput` из `req.body`
+  - Вызывает `adminCategoryService.updateCategory(id, input)`
+  - Автоматически обновляет slug при изменении name
+  - Использует `successResponse(res, updatedCategory, 'Категория успешно обновлена')`
+
+- **`deleteCategory`** - Soft delete категории
+  - Извлекает `id` из `req.params`
+  - Вызывает `adminCategoryService.deleteCategory(id)`
+  - Убирает категорию у всех кейсов (categoryId = null)
+  - Устанавливает isActive = false
+  - Использует `successResponse(res, null, 'Категория успешно удалена')`
+
+- **`assignCasesToCategory`** - Назначение кейсов категории
+  - Извлекает `id` из `req.params`
+  - Извлекает `IAssignCasesToCategoryInput` из `req.body`
+  - Вызывает `adminCategoryService.assignCasesToCategory(id, input)`
+  - Обновляет categoryId у всех указанных кейсов
+  - Возвращает категорию с обновлённым списком кейсов
+
+### 🛠 Техническая реализация
+
+#### **Dependencies:**
+```typescript
+import { Request, Response, NextFunction } from 'express';
+import { AuthenticatedRequest } from '../../middleware/auth.middleware.js';
+import * as adminCategoryService from '../../services/admin/adminCategory.service.js';
+import { successResponse } from '../../utils/index.js';
+```
+
+#### **Route Protection:**
+- **Все роуты требуют:**
+  - `authenticate` - JWT аутентификация
+  - `requireAdmin` - роль ADMIN
+  - `adminRateLimiter` - 50 req/min
+- **Валидация:**
+  - `validateCreateCategory` для POST /
+  - `validateUpdateCategory` для PUT /:id
+  - `validateAssignCases` для POST /:id/assign-cases
+
+### 📍 Подключенные роуты (из `admin/adminCategory.routes.ts`)
+```typescript
+// Все роуты с префиксом /api/v1/admin/categories
+router.get('/', controller.getAllCategories);
+router.get('/:id', controller.getCategoryById);
+router.post('/', authenticate, requireAdmin, adminRateLimiter, validateCreateCategory, controller.createCategory);
+router.put('/:id', authenticate, requireAdmin, adminRateLimiter, validateUpdateCategory, controller.updateCategory);
+router.delete('/:id', authenticate, requireAdmin, adminRateLimiter, controller.deleteCategory);
+router.post('/:id/assign-cases', authenticate, requireAdmin, adminRateLimiter, validateAssignCases, controller.assignCasesToCategory);
+```
+
+### 🌐 API Endpoint Examples
+
+#### **Получение всех категорий:**
+```bash
+GET /api/v1/admin/categories
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+
+Response:
+{
+  "success": true,
+  "data": [
+    {
+      "id": "cat1",
+      "name": "Популярные кейсы",
+      "slug": "populyarnye-keysy",
+      "description": "Самые популярные кейсы",
+      "imageUrl": "/images/categories/popular.png",
+      "order": 0,
+      "isActive": true,
+      "_count": {
+        "cases": 5
+      }
+    }
+  ]
+}
+```
+
+#### **Создание категории:**
+```bash
+POST /api/v1/admin/categories
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+Content-Type: application/json
+
+{
+  "name": "Новые кейсы",
+  "description": "Недавно добавленные кейсы",
+  "imageUrl": "/images/categories/new.png",
+  "order": 1
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "id": "cat2",
+    "name": "Новые кейсы",
+    "slug": "novye-keysy",
+    "description": "Недавно добавленные кейсы",
+    "imageUrl": "/images/categories/new.png",
+    "order": 1,
+    "isActive": true
+  },
+  "message": "Категория успешно создана"
+}
+```
+
+#### **Назначение кейсов категории:**
+```bash
+POST /api/v1/admin/categories/cat1/assign-cases
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+Content-Type: application/json
+
+{
+  "caseIds": ["case1", "case2", "case3"]
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "id": "cat1",
+    "name": "Популярные кейсы",
+    "cases": [
+      {
+        "id": "case1",
+        "name": "Wildfire Case",
+        "slug": "wildfire-case",
+        "imageUrl": "/images/cases/wildfire.png",
+        "price": 24900,
+        "isActive": true
+      },
+      ...
+    ]
+  },
+  "message": "Кейсы успешно назначены категории"
+}
+```
+
+### ⚠️ Особенности реализации
+
+#### **Безопасность:**
+- **Triple protection:** authenticate + requireAdmin + adminRateLimiter
+- **Детальное логирование** всех админских действий
+- **Валидация входных данных** через express-validator
+
+#### **Бизнес-логика:**
+- **Автоматическая генерация slug** из name
+- **Soft delete** - категории не удаляются из БД
+- **SetNull для кейсов** - при удалении категории кейсы остаются
+- **Сортировка по order** - гибкое управление позициями
+
+---
+
 ## 🚀 Future Controllers (Планируемые)
 
 ### **AdminPanelController** - админ функции

@@ -99,4 +99,78 @@ export const validateAddItemsToCase = [
   handleValidationErrors,
 ];
 
+/**
+ * Валидация для создания категории (Admin)
+ */
+export const validateCreateCategory = [
+  body('name')
+    .notEmpty()
+    .withMessage('name обязателен')
+    .isString()
+    .withMessage('name должен быть строкой')
+    .isLength({ min: 3, max: 100 })
+    .withMessage('name должен быть от 3 до 100 символов'),
+  body('description')
+    .optional()
+    .isString()
+    .withMessage('description должен быть строкой'),
+  body('imageUrl')
+    .optional()
+    .isString()
+    .withMessage('imageUrl должен быть строкой'),
+  body('order')
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage('order должен быть неотрицательным числом'),
+  body('isActive')
+    .optional()
+    .isBoolean()
+    .withMessage('isActive должен быть boolean'),
+  handleValidationErrors,
+];
+
+/**
+ * Валидация для обновления категории (Admin)
+ */
+export const validateUpdateCategory = [
+  body('name')
+    .optional()
+    .isString()
+    .withMessage('name должен быть строкой')
+    .isLength({ min: 3, max: 100 })
+    .withMessage('name должен быть от 3 до 100 символов'),
+  body('description')
+    .optional()
+    .isString()
+    .withMessage('description должен быть строкой'),
+  body('imageUrl')
+    .optional()
+    .isString()
+    .withMessage('imageUrl должен быть строкой'),
+  body('order')
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage('order должен быть неотрицательным числом'),
+  body('isActive')
+    .optional()
+    .isBoolean()
+    .withMessage('isActive должен быть boolean'),
+  handleValidationErrors,
+];
+
+/**
+ * Валидация для назначения кейсов категории (Admin)
+ */
+export const validateAssignCases = [
+  body('caseIds')
+    .isArray({ min: 1 })
+    .withMessage('caseIds должен быть непустым массивом'),
+  body('caseIds.*')
+    .isString()
+    .withMessage('Каждый caseId должен быть строкой'),
+  handleValidationErrors,
+];
+
+
+
 

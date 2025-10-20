@@ -4,6 +4,7 @@ import caseRoutes from './case.routes.js';
 import caseOpeningRoutes from './caseOpening.routes.js';
 import userRoutes from './user.routes.js';
 import paymentRoutes from './payment.routes.js';
+import categoryRoutes from './category.routes.js';
 import adminRoutes from './admin/index.js';
 
 // Основной роутер приложения
@@ -26,6 +27,11 @@ router.use('/v1/auth', authRoutes);
 // CASES ROUTES - V1
 // ==============================================
 router.use('/v1/cases', caseRoutes);
+
+// ==============================================
+// CATEGORIES ROUTES - V1
+// ==============================================
+router.use('/v1/categories', categoryRoutes);
 
 // ==============================================
 // OPENINGS ROUTES - V1

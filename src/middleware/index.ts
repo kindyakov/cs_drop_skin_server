@@ -84,7 +84,10 @@ import {
   handleValidationErrors,
   validateCreateCase,
   validateUpdateCase,
-  validateAddItemsToCase
+  validateAddItemsToCase,
+  validateCreateCategory,
+  validateUpdateCategory,
+  validateAssignCases,
 } from './validation.middleware.js';
 
 // ==============================================
@@ -143,7 +146,10 @@ export {
   handleValidationErrors,
   validateCreateCase,
   validateUpdateCase,
-  validateAddItemsToCase
+  validateAddItemsToCase,
+  validateCreateCategory,
+  validateUpdateCategory,
+  validateAssignCases
 };
 
 // ==============================================

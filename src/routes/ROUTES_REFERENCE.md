@@ -27,6 +27,12 @@ GET  /api/v1/cases                 → Список всех активных к
 GET  /api/v1/cases/:slug          → Детали кейса с предметами (по slug)
 ```
 
+### **📁 Categories**
+```
+GET  /api/v1/categories                 → Список активных категорий
+GET  /api/v1/categories/:id            → Категория с активными кейсами
+```
+
 ### **👤 Users**
 ```
 GET  /api/v1/users/inventory      → Инвентарь пользователя (JWT)
@@ -46,6 +52,16 @@ POST   /api/v1/admin/cases           → Создать кейс (Admin + JWT + 
 PUT    /api/v1/admin/cases/:id       → Обновить кейс (Admin + JWT + rate limit)
 DELETE /api/v1/admin/cases/:id       → Удалить кейс (Admin + JWT + rate limit)
 POST   /api/v1/admin/cases/:id/items → Добавить предметы в кейс (Admin + JWT + rate limit)
+```
+
+### **📁 Admin - Categories**
+```
+GET    /api/v1/admin/categories              → Получить все категории (Admin + JWT)
+GET    /api/v1/admin/categories/:id          → Получить категорию с кейсами (Admin + JWT)
+POST   /api/v1/admin/categories              → Создать категорию (Admin + JWT + rate limit)
+PUT    /api/v1/admin/categories/:id          → Обновить категорию (Admin + JWT + rate limit)
+DELETE /api/v1/admin/categories/:id          → Удалить категорию (Admin + JWT + rate limit)
+POST   /api/v1/admin/categories/:id/assign-cases → Назначить кейсы (Admin + JWT + rate limit)
 ```
 
 ### **📝 Health Check**
