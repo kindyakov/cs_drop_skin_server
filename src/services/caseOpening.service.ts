@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { ICaseOpeningResult, ILiveFeedEvent } from '../types/index.js';
 import { ValidationError, NotFoundError } from '../utils/index.js';
+import { emitCaseOpening } from '../config/socket.config.js';
+import { logger } from '../middleware/logger.middleware.js';
 
 const prisma = new PrismaClient();
 
@@ -22,8 +24,8 @@ export const openCase = async (
   userId: string,
   caseId: string
 ): Promise<ICaseOpeningResult> => {
-  return await prisma.$transaction(async (tx) => {
-    // 1. Получить пользователя с блокировкой
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. Получить пользователя
     const user = await tx.user.findUnique({
       where: { id: userId },
     });
@@ -57,11 +59,11 @@ export const openCase = async (
     );
 
     // 5. Получить предмет
-    const item = await tx.item.findUnique({
+    const wonItem = await tx.item.findUnique({
       where: { id: selectedItemId },
     });
 
-    if (!item) {
+    if (!wonItem) {
       throw new NotFoundError('Предмет не найден');
     }
 
@@ -75,25 +77,60 @@ export const openCase = async (
     await tx.userItem.create({
       data: {
         userId,
-        itemId: item.id,
+        itemId: wonItem.id,
       },
     });
 
     // 8. Записать историю
-    await tx.caseOpening.create({
+    const newOpening = await tx.caseOpening.create({
       data: {
         userId,
         caseId,
-        itemId: item.id,
+        itemId: wonItem.id,
       },
     });
 
+    const newBalance = user.balance - casePrice;
+
     return {
-      success: true,
-      item,
-      newBalance: user.balance - casePrice,
+      user,
+      caseData,
+      wonItem,
+      newOpening,
+      newBalance,
     };
   });
+
+  // Эмитировать событие в live-feed ПОСЛЕ успешной транзакции
+  try {
+    emitCaseOpening({
+      id: result.newOpening.id,
+      username: result.user.username,
+      userAvatar: result.user.avatarUrl,
+      caseName: result.caseData.name,
+      caseImage: result.caseData.imageUrl,
+      itemName: result.wonItem.displayName,
+      itemImage: result.wonItem.imageUrl,
+      itemRarity: result.wonItem.rarity,
+      openedAt: result.newOpening.openedAt,
+    });
+  } catch (emitError) {
+    // Не прерываем выполнение если emit не удался
+    logger.warn('Не удалось отправить событие в live-feed', { emitError });
+  }
+
+  logger.info('Кейс успешно открыт', {
+    userId,
+    caseId,
+    itemId: result.wonItem.id,
+    newBalance: result.newBalance,
+  });
+
+  return {
+    success: true,
+    item: result.wonItem,
+    newBalance: result.newBalance,
+  };
 };
 
 export const getRecentOpenings = async (limit = 20): Promise<ILiveFeedEvent[]> => {

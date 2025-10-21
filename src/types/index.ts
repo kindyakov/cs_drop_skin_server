@@ -11,3 +11,5 @@ export * from './payment.types';
 export * from './category.types.js';
 // Admin types
 export * from './admin.types.js';
+// Socket types
+export * from './socket.types.js';

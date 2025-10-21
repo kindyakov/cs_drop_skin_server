@@ -566,6 +566,52 @@ extends ICategory {
 
 ---
 
+## 🔌 Socket Types (`socket.types.ts`)
+
+### WebSocket события и типы
+
+#### **`ServerToClientEvents`** - События от сервера к клиенту
+```typescript
+{
+  'case-opened': (event: ILiveFeedEvent) => void;
+  'user-count': (count: number) => void;
+  'error': (message: string) => void;
+}
+```
+
+#### **`ClientToServerEvents`** - События от клиента к серверу
+```typescript
+{
+  'join-feed': () => void;
+  'leave-feed': () => void;
+}
+```
+
+#### **`InterServerEvents`** - Межсерверные события
+```typescript
+{
+  ping: () => void;
+}
+```
+
+#### **`SocketData`** - Данные сокета
+```typescript
+{
+  userId?: string;
+  username?: string;
+}
+```
+
+### События Live-Feed
+
+#### **'case-opened'** - Событие открытия кейса
+- Эмитится при успешном открытии кейса
+- Payload: ILiveFeedEvent
+- Room: 'live-feed'
+- Клиенты получают обновление в реальном времени
+
+---
+
 ## 📦 Импорт типов
 
 ```typescript
@@ -590,6 +636,13 @@ import {
   IGetUsersFilters, IUpdateUserBalanceInput,
   IAdminDashboardStats, IPopularCase, IRecentTransaction
 } from './admin.types.js';
+// Socket types
+import {
+  ServerToClientEvents,
+  ClientToServerEvents,
+  InterServerEvents,
+  SocketData,
+} from './socket.types.js';
 
 // В коде
 const userRole: UserRole = UserRoles.ADMIN;

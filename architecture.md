@@ -49,7 +49,7 @@
 │   ├── 📁 services
 │   │   ├── 📄 case.service.ts
 │   │   ├── 📄 caseOpening.service.ts
-│   │   ├── 📄 marketCsgo.service.ts
+│   │   ├── 📄 marketCs.service.ts
 │   │   ├── 📄 payment.service.ts
 │   │   ├── 📄 SERVICES_REFERENCE.md
 │   │   └── 📄 user.service.ts

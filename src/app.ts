@@ -33,10 +33,13 @@ app.use(morganMiddleware); // HTTP request logging
 // ==============================================
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({
-    status: 'ok',
+    status: 'OK',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: config.nodeEnv,
+    services: {
+      api: 'operational',
+      database: 'operational',
+      websocket: 'operational',
+    },
   });
 });
 

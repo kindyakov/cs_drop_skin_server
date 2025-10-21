@@ -1,4 +1,8 @@
 import { z } from 'zod';
+import dotenv from 'dotenv';
+
+// Загрузка переменных окружения из .env файла
+dotenv.config();
 
 // Environment variables schema with validation
 const envSchema = z.object({
@@ -6,60 +10,81 @@ const envSchema = z.object({
   // BASIC SERVER CONFIGURATION
   // ================================
   NODE_ENV: z.enum(['development', 'production', 'test'], {
-    errorMap: () => ({ message: 'NODE_ENV must be one of: development, production, test' })
+    errorMap: () => ({ message: 'NODE_ENV must be one of: development, production, test' }),
   }),
   PORT: z.string().transform(Number).pipe(z.number().min(1).max(65535)).default('5000'),
 
   // ================================
   // DATABASE
   // ================================
-  DATABASE_URL: z.string({
-    required_error: 'DATABASE_URL is required. Format: postgresql://username:password@host:port/database'
-  }).url(),
+  DATABASE_URL: z
+    .string({
+      required_error:
+        'DATABASE_URL is required. Format: postgresql://username:password@host:port/database',
+    })
+    .url(),
 
   // ================================
   // JWT AUTHENTICATION
   // ================================
-  JWT_SECRET: z.string({
-    required_error: 'JWT_SECRET is required for token generation'
-  }).min(32, { message: 'JWT_SECRET must be at least 32 characters long' }),
+  JWT_SECRET: z
+    .string({
+      required_error: 'JWT_SECRET is required for token generation',
+    })
+    .min(32, { message: 'JWT_SECRET must be at least 32 characters long' }),
   JWT_EXPIRES_IN: z.string().default('2h'),
 
   // ================================
   // STEAM OAUTH PROVIDER
   // ================================
-  STEAM_API_KEY: z.string({
-    required_error: 'STEAM_API_KEY is required for Steam OAuth'
-  }).min(1),
-  STEAM_RETURN_URL: z.string({
-    required_error: 'STEAM_RETURN_URL is required for Steam OAuth callback'
-  }).url(),
+  STEAM_API_KEY: z
+    .string({
+      required_error: 'STEAM_API_KEY is required for Steam OAuth',
+    })
+    .min(1),
+  STEAM_RETURN_URL: z
+    .string({
+      required_error: 'STEAM_RETURN_URL is required for Steam OAuth callback',
+    })
+    .url(),
 
   // ================================
   // VK OAUTH PROVIDER
   // ================================
-  VK_APP_ID: z.string({
-    required_error: 'VK_APP_ID is required for VkOAuth'
-  }).min(1),
-  VK_APP_SECRET: z.string({
-    required_error: 'VK_APP_SECRET is required for VkOAuth'
-  }).min(1),
-  VK_CALLBACK_URL: z.string({
-    required_error: 'VK_CALLBACK_URL is required for VK OAuth callback'
-  }).url(),
+  VK_APP_ID: z
+    .string({
+      required_error: 'VK_APP_ID is required for VkOAuth',
+    })
+    .min(1),
+  VK_APP_SECRET: z
+    .string({
+      required_error: 'VK_APP_SECRET is required for VkOAuth',
+    })
+    .min(1),
+  VK_CALLBACK_URL: z
+    .string({
+      required_error: 'VK_CALLBACK_URL is required for VK OAuth callback',
+    })
+    .url(),
 
   // ================================
   // EXTERNAL SERVICES
   // ================================
-  MARKET_CSGO_API_KEY: z.string({
-    required_error: 'MARKET_CSGO_API_KEY is required for market.csgo.com API'
-  }).min(1),
-  YOOKASSA_SHOP_ID: z.string({
-    required_error: 'YOOKASSA_SHOP_ID is required for YooKassa payment gateway'
-  }).min(1),
-  YOOKASSA_SECRET_KEY: z.string({
-    required_error: 'YOOKASSA_SECRET_KEY is required for YooKassa payment gateway'
-  }).min(1),
+  MARKET_CS_API_KEY: z
+    .string({
+      required_error: 'MARKET_CS_API_KEY is required for market.csgo.com API',
+    })
+    .min(1),
+  YOOKASSA_SHOP_ID: z
+    .string({
+      required_error: 'YOOKASSA_SHOP_ID is required for YooKassa payment gateway',
+    })
+    .min(1),
+  YOOKASSA_SECRET_KEY: z
+    .string({
+      required_error: 'YOOKASSA_SECRET_KEY is required for YooKassa payment gateway',
+    })
+    .min(1),
 
   // ================================
   // CORS & SECURITY
@@ -75,9 +100,11 @@ const envSchema = z.object({
   // ================================
   // LOGGING
   // ================================
-  LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug'], {
-    errorMap: () => ({ message: 'LOG_LEVEL must be one of: error, warn, info, debug' })
-  }).default('info'),
+  LOG_LEVEL: z
+    .enum(['error', 'warn', 'info', 'debug'], {
+      errorMap: () => ({ message: 'LOG_LEVEL must be one of: error, warn, info, debug' }),
+    })
+    .default('info'),
 });
 
 // Validate and parse environment variables
@@ -87,7 +114,7 @@ try {
   validatedEnv = envSchema.parse(process.env);
 } catch (error) {
   if (error instanceof z.ZodError) {
-    const errorMessages = error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+    const errorMessages = error.errors.map((err) => `${err.path.join('.')}: ${err.message}`);
     throw new Error(`❌ Invalid environment variables:\n${errorMessages.join('\n')}`);
   }
   throw error;
@@ -98,7 +125,7 @@ export const config = {
   // Server
   nodeEnv: validatedEnv.NODE_ENV,
   port: validatedEnv.PORT,
-  
+
   // Database
   database: {
     url: validatedEnv.DATABASE_URL,
@@ -115,7 +142,7 @@ export const config = {
     apiKey: validatedEnv.STEAM_API_KEY,
     returnUrl: validatedEnv.STEAM_RETURN_URL,
   },
-  
+
   vk: {
     appId: validatedEnv.VK_APP_ID,
     appSecret: validatedEnv.VK_APP_SECRET,
@@ -123,8 +150,8 @@ export const config = {
   },
 
   // External services
-  marketCsgo: {
-    apiKey: validatedEnv.MARKET_CSGO_API_KEY,
+  marketCs: {
+    apiKey: validatedEnv.MARKET_CS_API_KEY,
   },
 
   yookassa: {

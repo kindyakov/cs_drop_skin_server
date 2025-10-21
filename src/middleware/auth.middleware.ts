@@ -28,7 +28,7 @@ export const authenticate = async (req: Request, _res: Response, next: NextFunct
     const decoded = verifyToken(token);
 
     // 4. Добавить в req.user
-    req.user = {
+    (req as AuthenticatedRequest).user = {
       userId: decoded.userId,
       role: decoded.role as UserRole,
     };

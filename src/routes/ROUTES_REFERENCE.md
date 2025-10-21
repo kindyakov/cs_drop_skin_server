@@ -1,18 +1,21 @@
 # 🚀 Роуты - Справочник
 
 ## 📖 Обзор
-API роуты приложения с версией /api/v1/* для CS:GO Case Opening Platform.
+
+API роуты приложения с версией /api/v1/\* для CS:GO Case Opening Platform.
 
 ---
 
 ## 🌐 Эндпоинты
 
 ### **Базовый URL**
+
 ```
 http://localhost:5000/api/v1/
 ```
 
 ### **🔐 Authentication**
+
 ```
 GET  /api/v1/auth/steam          → OAuth через Steam
 GET  /api/v1/auth/steam/return   → Steam OAuth callback
@@ -22,24 +25,29 @@ GET  /api/v1/auth/me             → Профиль пользователя (JW
 ```
 
 ### **🗃️ Cases**
+
 ```
 GET  /api/v1/cases                 → Список всех активных кейсов
 GET  /api/v1/cases/:slug          → Детали кейса с предметами (по slug)
 ```
 
 ### **📁 Categories**
+
 ```
 GET  /api/v1/categories                 → Список активных категорий
 GET  /api/v1/categories/:id            → Категория с активными кейсами
 ```
 
 ### **👤 Users**
+
 ```
-GET  /api/v1/users/inventory      → Инвентарь пользователя (JWT)
-GET  /api/v1/users/history        → История открытий кейсов (JWT)
+GET  /api/v1/user/inventory      → Инвентарь пользователя (JWT)
+GET  /api/v1/user/history        → История открытий кейсов (JWT)
+GET  /api/v1/user/:id            → Профиль пользователя по id
 ```
 
 ### **💳 Payments**
+
 ```
 POST /api/v1/payments/create           → Создание платежа (JWT + rate limit)
 POST /api/v1/payments/webhook          → YooKassa webhook (публичный)
@@ -47,6 +55,7 @@ GET  /api/v1/payments/transactions     → История транзакций (
 ```
 
 ### **🔐 Admin - Cases**
+
 ```
 POST   /api/v1/admin/cases           → Создать кейс (Admin + JWT + rate limit)
 PUT    /api/v1/admin/cases/:id       → Обновить кейс (Admin + JWT + rate limit)
@@ -55,6 +64,7 @@ POST   /api/v1/admin/cases/:id/items → Добавить предметы в к
 ```
 
 ### **📁 Admin - Categories**
+
 ```
 GET    /api/v1/admin/categories              → Получить все категории (Admin + JWT)
 GET    /api/v1/admin/categories/:id          → Получить категорию с кейсами (Admin + JWT)
@@ -65,6 +75,7 @@ POST   /api/v1/admin/categories/:id/assign-cases → Назначить кейс
 ```
 
 ### **👥 Admin - Users**
+
 ```
 GET   /api/v1/admin/users                    → Список пользователей с фильтрами (Admin + JWT)
 PATCH /api/v1/admin/users/:id/toggle-block   → Блокировка/разблокировка (Admin + JWT + rate limit)
@@ -72,6 +83,7 @@ PATCH /api/v1/admin/users/:id/balance        → Обновить баланс (
 ```
 
 ### **📊 Admin - Stats**
+
 ```
 GET  /api/v1/admin/stats/dashboard            → Статистика дашборда (Admin + JWT)
 GET  /api/v1/admin/stats/popular-cases        → Популярные кейсы (Admin + JWT)
@@ -79,11 +91,13 @@ GET  /api/v1/admin/stats/recent-transactions  → Недавние транза�
 ```
 
 ### **📝 Health Check**
+
 ```
 GET  /health                     → Статус сервера
 ```
 
 ### **🎯 Case Openings**
+
 ```
 POST  /api/v1/openings/open        → Открытие кейса (JWT + rate limit)
 GET   /api/v1/openings/recent     → Live-лента последних открытий
@@ -94,6 +108,7 @@ GET   /api/v1/openings/recent     → Live-лента последних отк�
 ## 🏗️ Структура
 
 ### **Централизованный роутер** (`routes/index.ts`)
+
 ```typescript
 import { Router } from 'express';
 import authRoutes from './auth.routes.js';
@@ -114,6 +129,7 @@ router.use('/v1/users', userRoutes);
 ```
 
 ### **App.ts интеграция**
+
 ```typescript
 import routes from './routes/index.js';
 
@@ -135,6 +151,7 @@ app.use('/api', routes);
 ## 🔧 TypeScript
 
 ### **Расширение Request**
+
 ```typescript
 declare global {
   namespace Express {
@@ -150,6 +167,7 @@ declare global {
 ## 📝 Примеры использования
 
 ### **OAuth Flow**
+
 ```typescript
 // Start Steam OAuth
 window.location.href = '/api/v1/auth/steam';
@@ -160,9 +178,10 @@ localStorage.setItem('token', receivedToken);
 ```
 
 ### **API Calls**
+
 ```typescript
 const profile = await fetch('/api/v1/auth/me', {
-  headers: { Authorization: `Bearer ${token}` }
+  headers: { Authorization: `Bearer ${token}` },
 });
 ```
 
@@ -182,6 +201,7 @@ const profile = await fetch('/api/v1/auth/me', {
 10. **Response:** `ICaseOpeningResult` с выпавшим предметом
 
 ## 🚀 Future Routes
+
 ```typescript
 // Планируемые роуты
 router.use('/v1/admin', adminRoutes);
@@ -189,4 +209,4 @@ router.use('/v1/admin', adminRoutes);
 
 ---
 
-*Последнее обновление: 17.10.2025*
+_Последнее обновление: 17.10.2025_

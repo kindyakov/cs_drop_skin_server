@@ -1,4 +1,4 @@
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import * as userService from '../services/user.service';
 import { successResponse } from '../utils';
@@ -27,6 +27,16 @@ export const getOpeningsHistory = async (
     const limit = parseInt(req.query.limit as string) || 50;
     const history = await userService.getUserOpenings(userId, limit);
     successResponse(res, history);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.params.id;
+    const userProfile = await userService.getUserById(userId);
+    successResponse(res, userProfile);
   } catch (error) {
     next(error);
   }

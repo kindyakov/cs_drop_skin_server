@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { syncItems } from '@services/marketCsgo.service.js';
+import { syncItems } from '@services/marketCs.service.js';
 import { logger } from '@middleware/logger.middleware.js';
 
 // Запуск каждый день в 3:00 ночи

@@ -16,7 +16,7 @@ interface MarketItem {
 const fetchItemsFromMarket = async (): Promise<MarketItem[]> => {
   try {
     const response = await axios.get('https://market.csgo.com/api/v2/prices/USD.json', {
-      params: { key: config.marketCsgo.apiKey },
+      params: { key: config.marketCs.apiKey },
       timeout: 30000,
     });
 
