@@ -100,6 +100,10 @@ export const getProfileById = async (
     });
   }
 
+  const steamProfileUrl = user.steamId
+    ? `https://steamcommunity.com/profiles/${user.steamId}`
+    : null;
+
   // Базовый публичный профиль
   const publicProfile: IUserPublicProfile = {
     id: user.id,
@@ -107,6 +111,7 @@ export const getProfileById = async (
     avatarUrl: user.avatarUrl,
     role: user.role as any,
     createdAt: user.createdAt,
+    steamProfileUrl,
     favoriteCase: user.favoriteCase
       ? {
           ...user.favoriteCase,
@@ -144,4 +149,72 @@ export const updateUserTradeUrl = async (userId: string, tradeUrl: string): Prom
     where: { id: userId },
     data: { tradeUrl },
   });
+};
+
+/**
+ * Обновить статистику пользователя (favorite case и best drop)
+ * Вызывается автоматически после открытия кейса
+ */
+export const updateUserStats = async (
+  userId: string,
+  caseId: string,
+  itemId: string,
+  itemPrice: number
+): Promise<void> => {
+  try {
+    // Получить текущие данные пользователя
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        bestDropItemId: true,
+      },
+    });
+
+    if (!user) {
+      return;
+    }
+
+    // === ОБНОВЛЕНИЕ FAVORITE CASE ===
+    // Найти самый часто открываемый кейс
+    const caseStats = await prisma.caseOpening.groupBy({
+      by: ['caseId'],
+      where: { userId },
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
+      take: 1,
+    });
+
+    const favoriteCaseId = caseStats[0]?.caseId || caseId;
+
+    // === ОБНОВЛЕНИЕ BEST DROP ===
+    let bestDropItemId = user.bestDropItemId;
+
+    if (user.bestDropItemId) {
+      // Если уже есть best drop - сравнить цены
+      const currentBestDrop = await prisma.item.findUnique({
+        where: { id: user.bestDropItemId },
+        select: { price: true },
+      });
+
+      // Если новый предмет дороже - обновить
+      if (!currentBestDrop || itemPrice > currentBestDrop.price) {
+        bestDropItemId = itemId;
+      }
+    } else {
+      // Если нет best drop - установить текущий предмет
+      bestDropItemId = itemId;
+    }
+
+    // Обновить пользователя одним запросом
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        favoriteCaseId,
+        bestDropItemId,
+      },
+    });
+  } catch (error) {
+    // НЕ бросаем ошибку - это не должно прерывать основной функционал
+    console.error('Ошибка обновления статистики пользователя:', error);
+  }
 };

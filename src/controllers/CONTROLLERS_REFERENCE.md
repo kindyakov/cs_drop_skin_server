@@ -421,116 +421,185 @@ Response:
 
 ## 👤 User Controller (`user.controller.ts`)
 
-### Функции работы с профилем пользователя
+### Функции профиля пользователя
 
 #### **User Profile Operations**
-- **`getInventory`** - Получение инвентаря пользователя
-  - Использует `AuthenticatedRequest` для доступа к `userId`
-  - Вызывает `userService.getUserInventory(userId)`
-  - Возвращает массив предметов со статусом `OWNED`
-  - Сортирует по `acquiredAt` (новые первыми)
-  - Использует `successResponse(res, inventory)` для ответа
+- **`getUser`** - Получение профиля пользователя по ID
+  - **Публичный endpoint** - НЕ требует обязательной авторизации
+  - Использует `optionalAuth` middleware
+  - Извлекает `id` из `req.params`
+  - Извлекает `requestingUserId` из `req.user?.userId` (если авторизован)
+  - Вызывает `userService.getProfileById(id, requestingUserId)`
+  - **Возвращает:**
+    - `IUserPublicProfile` если не авторизован ИЛИ запрашивает чужой профиль
+    - `IUserExtendedProfile` если авторизован И запрашивает свой профиль
+  - Использует `successResponse(res, profile)`
+  - **Ошибки:** 404 если пользователь не найден
 
-- **`getOpeningsHistory`** - Получение истории открытий кейсов
-  - Использует `AuthenticatedRequest` для доступа к `userId`
-  - Извлекает `limit` из `req.query` (по умолчанию 50)
+- **`getInventory`** - Получение инвентаря текущего пользователя
+  - Требует `authenticate` + `checkUserBlocked`
+  - Извлекает `userId` из `req.user!.userId`
+  - Извлекает `limit` и `offset` из query параметров
+  - Вызывает `userService.getUserInventory(userId, limit, offset)`
+  - Возвращает объект с items и pagination информацией
+  - **Response structure:**
+```typescript
+    {
+      items: IUserItem[],
+      pagination: {
+        limit: number,
+        offset: number,
+        total: number,
+        hasMore: boolean
+      }
+    }
+```
+
+- **`getOpeningsHistory`** - Получение истории открытий
+  - Требует `authenticate` + `checkUserBlocked`
+  - Извлекает `userId` из `req.user!.userId`
+  - Извлекает `limit` из query параметров (по умолчанию 50)
   - Вызывает `userService.getUserOpenings(userId, limit)`
-  - Возвращает историю открытий с деталями кейсов и предметов
-  - Использует `successResponse(res, history)` для ответа
+  - Использует `successResponse(res, history)`
+
+- **`updateTradeUrl`** - Обновление trade URL
+  - Требует `authenticate` + `checkUserBlocked` + `validateTradeUrl`
+  - Извлекает `userId` из `req.user!.userId`
+  - Извлекает `tradeUrl` из `req.body`
+  - Вызывает `userService.updateUserTradeUrl(userId, tradeUrl)`
+  - Использует `successResponse(res, null, 'Trade URL успешно обновлён')`
 
 ### 🛠 Техническая реализация
 
 #### **Dependencies:**
 ```typescript
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
 import * as userService from '../services/user.service.js';
 import { successResponse } from '../utils/index.js';
 ```
 
 #### **Route Protection:**
-- **Все роуты требуют JWT аутентификацию** (`AuthenticatedRequest`)
-- Извлечение `userId` из `req.user!.userId`
-- Стандартная обработка ошибок через `next(error)`
+- **getUser:** `optionalAuth` - не обязательная авторизация
+- **getInventory:** `authenticate` + `checkUserBlocked`
+- **getOpeningsHistory:** `authenticate` + `checkUserBlocked`
+- **updateTradeUrl:** `authenticate` + `checkUserBlocked` + `validateTradeUrl`
 
 ### 📍 Подключенные роуты (из `user.routes.ts`)
 ```typescript
-// Все роуты требуют авторизации
-router.get('/inventory', authenticate, userController.getInventory);
-router.get('/history', authenticate, userController.getOpeningsHistory);
+// Все роуты с префиксом /api/v1/user
+router.get('/inventory', authenticate, checkUserBlocked, controller.getInventory);
+router.get('/history', authenticate, checkUserBlocked, controller.getOpeningsHistory);
+router.patch('/trade-url', authenticate, checkUserBlocked, validateTradeUrl, controller.updateTradeUrl);
+router.get('/:id', optionalAuth, controller.getUser); // ПОСЛЕДНИЙ роут!
 ```
 
 ### 🌐 API Endpoint Examples
 
-#### **Получение инвентаря:**
+#### **Получение публичного профиля:**
 ```bash
-GET /api/v1/users/inventory
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+GET /api/v1/user/user123
 
 Response:
 {
   "success": true,
-  "data": [
-    {
-      "id": "userItem1",
-      "userId": "user123",
-      "itemId": "item456",
-      "acquiredAt": "2025-10-17T19:30:00.000Z",
-      "status": "OWNED",
-      "item": {
-        "id": "item456",
-        "displayName": "AWP Dragon Lore",
-        "marketHashName": "AWP | Dragon Lore",
-        "imageUrl": "/images/items/awp_dragon_lore.png",
-        "price": 8500000,
-        "rarity": "COVERT"
-      }
-    }
-  ]
+  "data": {
+    "id": "user123",
+    "username": "john_doe",
+    "avatarUrl": "/avatars/john.png",
+    "role": "USER",
+    "createdAt": "2025-10-17T19:30:00.000Z",
+    "favoriteCase": {
+      "id": "case1",
+      "name": "Wildfire Case",
+      "slug": "wildfire-case",
+      "imageUrl": "/images/cases/wildfire.png",
+      "openingsCount": 15
+    },
+    "bestDrop": {
+      "id": "item1",
+      "displayName": "AK-47 | Redline",
+      "imageUrl": "/images/items/ak47-redline.png",
+      "price": 125000,
+      "rarity": "Classified"
+    },
+    "inventory": [...], // Первые 21 предмет
+    "totalItems": 50,
+    "hasMore": true
+  }
 }
 ```
 
-#### **Получение истории открытий:**
+#### **Получение своего профиля (расширенный):**
 ```bash
-GET /api/v1/users/history?limit=10
+GET /api/v1/user/user123
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
 
 Response:
 {
   "success": true,
-  "data": [
-    {
-      "id": "opening1",
-      "userId": "user123",
-      "caseId": "case1",
-      "itemId": "item456",
-      "openedAt": "2025-10-17T19:30:00.000Z",
-      "case": {
-        "name": "Wildfire Case",
-        "imageUrl": "/images/cases/wildfire.png"
-      },
-      "item": {
-        "displayName": "AWP Dragon Lore",
-        "imageUrl": "/images/items/awp_dragon_lore.png",
-        "rarity": "COVERT",
-        "price": 8500000
-      }
+  "data": {
+    // ... все поля из публичного профиля +
+    "balance": 50000,
+    "tradeUrl": "https://steamcommunity.com/tradeoffer/new/?partner=123456&token=AbCdEfGh",
+    "isBlocked": false
+  }
+}
+```
+
+#### **Получение инвентаря с пагинацией:**
+```bash
+GET /api/v1/user/inventory?limit=21&offset=0
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+
+Response:
+{
+  "success": true,
+  "data": {
+    "items": [...],
+    "pagination": {
+      "limit": 21,
+      "offset": 0,
+      "total": 50,
+      "hasMore": true
     }
-  ]
+  }
+}
+```
+
+#### **Обновление trade URL:**
+```bash
+PATCH /api/v1/user/trade-url
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+Content-Type: application/json
+
+{
+  "tradeUrl": "https://steamcommunity.com/tradeoffer/new/?partner=123456789&token=AbCdEfGh"
+}
+
+Response:
+{
+  "success": true,
+  "data": null,
+  "message": "Trade URL успешно обновлён"
 }
 ```
 
 ### ⚠️ Особенности реализации
 
-#### **Безопасность:**
-- **JWT аутентификация** обязательна для всех роутов
-- **Фильтрация по userId** - пользователи видят только свои данные
-- **Нет POST/PUT/DELETE** - только операции чтения
+#### **Публичный vs Расширенный профиль:**
+- Автоматическое определение через `optionalAuth` middleware
+- Если JWT есть И `requestingUserId === userId` → расширенный профиль
+- Иначе → публичный профиль
 
-#### **Оптимизация запросов:**
-- **Selective includes** для загрузки связанных данных
-- **Ordering** для релевантной сортировки
-- **Limit** для контроля размера ответа
+#### **Порядок роутов:**
+- ⚠️ **КРИТИЧНО:** `/:id` должен быть ПОСЛЕДНИМ в user.routes.ts
+- Специфичные роуты (`/inventory`, `/history`) должны быть ПЕРЕД параметризованными
+
+#### **Пагинация инвентаря:**
+- Первоначальная загрузка: 21 предмет в профиле
+- Дополнительная загрузка: через GET /inventory с offset
+- `hasMore` показывает, есть ли ещё предметы
 
 ---
 

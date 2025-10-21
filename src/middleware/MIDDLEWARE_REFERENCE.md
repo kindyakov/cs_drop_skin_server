@@ -117,6 +117,19 @@
   - Использует `verifyToken()` из utils/jwt.util.ts
   - Бросает `UnauthorizedError` при отсутствии или неверном токене
 
+### **`optionalAuth`** - Опциональная аутентификация
+- Проверяет JWT токен если он присутствует в заголовке
+- НЕ требует обязательного наличия токена
+- Если токен валиден - устанавливает `req.user`
+- Если токена нет - просто продолжает выполнение
+- Если токен невалиден - продолжает без `req.user` (не возвращает 401)
+- **Использование:** Для endpoints которые работают и без авторизации, но меняют поведение при её наличии
+- **Пример:**
+```typescript
+  // Профиль доступен всем, но авторизованный видит больше данных
+  router.get('/:id', optionalAuth, controller.getUser);
+```
+
 ### Role-Based Access Control
 - **`requireRole(...roles)`** - Factory function для middleware с ролевой проверкой
   - Принимает массив ролей (например: `requireRole(UserRoles.ADMIN)`)
@@ -287,6 +300,14 @@ router.post('/create', authenticate, validatePayment, paymentRateLimiter, contro
   - `amount` - обязателен, целое число в копейках
   - `reason` - опциональная строка, max 500 символов
 - **Использование:** middleware для PATCH /admin/users/:id/balance
+
+#### **`validateTradeUrl`** - Валидация Steam trade URL
+- **Проверяет:**
+  - `tradeUrl` - обязателен, строка
+  - Формат: `https://steamcommunity.com/tradeoffer/new/?partner=NUMBER&token=STRING`
+  - Regex pattern: `/^https:\/\/steamcommunity\.com\/tradeoffer\/new\/\?partner=\d+&token=[a-zA-Z0-9_-]+$/`
+- **Использование:** middleware для PATCH /user/trade-url
+- **Пример валидного URL:** `https://steamcommunity.com/tradeoffer/new/?partner=123456789&token=AbCdEfGh`
 
 ```
 

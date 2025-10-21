@@ -14,7 +14,7 @@ export const steamCallback = [
   passport.authenticate('steam', { session: false, failureRedirect: '/auth/failure' }),
   (req: Request, res: Response) => {
     const user = req.user as any;
-    const token = generateToken({ userId: user.id, role: user.role });
+    const token = generateToken({ userId: user.userId, role: user.role });
     res.redirect(
       `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/success?token=${token}`
     );
@@ -27,7 +27,7 @@ export const vkCallback = [
   passport.authenticate('vkontakte', { session: false, failureRedirect: '/auth/failure' }),
   (req: Request, res: Response) => {
     const user = req.user as any;
-    const token = generateToken({ userId: user.id, role: user.role });
+    const token = generateToken({ userId: user.userId, role: user.role });
     res.redirect(
       `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/success?token=${token}`
     );

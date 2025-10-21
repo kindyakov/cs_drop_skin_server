@@ -1,12 +1,31 @@
 import { Router } from 'express';
 import * as userController from '../controllers/user.controller.js';
-import { authenticate } from '../middleware/index.js';
+import {
+  authenticate,
+  checkUserBlocked,
+  optionalAuth,
+  validateTradeUrl,
+} from '../middleware/index.js';
 
 const router = Router();
 
-// Все роуты требуют авторизации
-router.get('/inventory', authenticate, userController.getInventory as any);
-router.get('/history', authenticate, userController.getOpeningsHistory as any);
-router.get('/:id', userController.getProfile);
+// ==============================================
+// USER ROUTES
+// ==============================================
+
+// ВАЖНО: Специфичные роуты ПЕРЕД параметризованными!
+
+// Получить инвентарь текущего пользователя (требует авторизации)
+router.get('/inventory', authenticate, checkUserBlocked, userController.getInventory as any);
+
+// Получить историю открытий (требует авторизации)
+router.get('/history', authenticate, checkUserBlocked, userController.getOpeningsHistory as any);
+
+// Обновить trade URL (требует авторизации)
+router.patch('/trade-url', authenticate, checkUserBlocked, validateTradeUrl, userController.updateTradeUrl as any);
+
+// Получить профиль пользователя по ID (ПОСЛЕДНИЙ!)
+// Публичный, но с опциональной авторизацией
+router.get('/:id', optionalAuth, userController.getUser as any);
 
 export default router;

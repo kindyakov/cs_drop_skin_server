@@ -1,30 +1,78 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthenticatedRequest } from '../middleware/auth.middleware';
-import * as userService from '../services/user.service';
-import { successResponse } from '../utils';
+import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
+import * as userService from '../services/user.service.js';
+import { successResponse } from '../utils/index.js';
 
-export const getInventory = async (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-) => {
+/**
+ * Получить профиль пользователя по ID (публичный endpoint)
+ * Если пользователь авторизован И запрашивает свой профиль - вернуть расширенные данные
+ */
+export const getUser = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
   try {
-    const userId = req.user!.userId;
-    const inventory = await userService.getUserInventory(userId);
-    successResponse(res, inventory);
+    const { id } = req.params;
+
+    // Проверяем, авторизован ли пользователь (опционально)
+    const requestingUserId = (req as AuthenticatedRequest).user?.userId;
+
+    const profile = await userService.getProfileById(id, requestingUserId);
+
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Пользователь не найден',
+      });
+    }
+
+    successResponse(res, profile);
   } catch (error) {
     next(error);
   }
 };
 
+/**
+ * Получить инвентарь текущего пользователя (с пагинацией)
+ */
+export const getInventory = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+    const limit = parseInt(req.query.limit as string) || 21;
+    const offset = parseInt(req.query.offset as string) || 0;
+
+    const inventory = await userService.getUserInventory(userId, limit, offset);
+    
+    // Получить общее количество для информации
+    const totalItems = await userService.getUserInventory(userId).then(items => items.length);
+    
+    successResponse(res, {
+      items: inventory,
+      pagination: {
+        limit,
+        offset,
+        total: totalItems,
+        hasMore: offset + inventory.length < totalItems,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Получить историю открытий кейсов
+ */
 export const getOpeningsHistory = async (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const userId = req.user!.userId;
     const limit = parseInt(req.query.limit as string) || 50;
+
     const history = await userService.getUserOpenings(userId, limit);
     successResponse(res, history);
   } catch (error) {
@@ -32,11 +80,20 @@ export const getOpeningsHistory = async (
   }
 };
 
-export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
+/**
+ * Обновить trade URL пользователя
+ */
+export const updateTradeUrl = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-    const userId = req.params.id;
-    const userProfile = await userService.getProfileById(userId);
-    successResponse(res, userProfile);
+    const userId = req.user!.userId;
+    const { tradeUrl } = req.body;
+
+    await userService.updateUserTradeUrl(userId, tradeUrl);
+    successResponse(res, null, 'Trade URL успешно обновлён');
   } catch (error) {
     next(error);
   }

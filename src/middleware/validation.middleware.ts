@@ -1,5 +1,5 @@
-import { body, validationResult } from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
+import { body, validationResult } from 'express-validator';
 import { ValidationError } from '../utils/index.js';
 
 /**
@@ -188,6 +188,22 @@ export const validateUpdateUserBalance = [
     .withMessage('reason не должен превышать 500 символов'),
   handleValidationErrors,
 ];
+
+/**
+ * Валидация для обновления trade URL
+ */
+export const validateTradeUrl = [
+  body('tradeUrl')
+    .notEmpty()
+    .withMessage('tradeUrl обязателен')
+    .isString()
+    .withMessage('tradeUrl должен быть строкой')
+    .matches(/^https:\/\/steamcommunity\.com\/tradeoffer\/new\/\?partner=\d+&token=[a-zA-Z0-9_-]+$/)
+    .withMessage('Неверный формат Steam trade URL. Пример: https://steamcommunity.com/tradeoffer/new/?partner=123456789&token=AbCdEfGh'),
+  handleValidationErrors,
+];
+
+
 
 
 

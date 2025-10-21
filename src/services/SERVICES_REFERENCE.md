@@ -198,6 +198,32 @@ export const getCases = async (_req: Request, res: Response) => {
   - Валидация формата происходит на уровне middleware
 - **Использование:** Endpoint для пользователя чтобы установить/обновить trade URL
 
+#### **`updateUserStats(userId, caseId, itemId, itemPrice)`**
+- **Описание:** Автоматическое обновление статистики пользователя после открытия кейса
+- **Тип:** `(userId: string, caseId: string, itemId: string, itemPrice: number) => Promise<void>`
+- **Логика:**
+  - **Favorite Case:** Вычисляет самый часто открываемый кейс через groupBy
+  - **Best Drop:** Сравнивает цену нового предмета с текущим best drop
+  - Обновляет favoriteCaseId и bestDropItemId одним запросом
+  - НЕ бросает ошибки наружу (обёрнуто в try-catch)
+- **Когда вызывается:** Автоматически после успешного открытия кейса
+- **Алгоритм Favorite Case:**
+```typescript
+  // Группировка по caseId, сортировка по количеству, взять топ-1
+  const caseStats = await prisma.caseOpening.groupBy({
+    by: ['caseId'],
+    where: { userId },
+    _count: { id: true },
+    orderBy: { _count: { id: 'desc' } },
+    take: 1,
+  });
+```
+- **Алгоритм Best Drop:**
+  - Если bestDropItemId === null → установить текущий предмет
+  - Если bestDropItemId существует → сравнить цены
+  - Если новый предмет дороже → обновить
+- **Безопасность:** Ошибки не прерывают основной функционал открытия кейса
+
 ### **⚠️ Important**
 
 #### **Публичный vs Расширенный профиль:**
@@ -725,12 +751,21 @@ export const getCases = async (_req: Request, res: Response) => {
     - Добавляет предмет в инвентарь
     - Создаёт запись CaseOpening
   - **Эмитит событие в WebSocket** - live-feed получает обновление
+  - **Обновляет статистику пользователя** - favorite case и best drop
   - Возвращает результат с предметом и новым балансом
 - **Обработка ошибок:**
   - `NotFoundError` если кейс/пользователь не найден
   - `ValidationError` если недостаточно средств
-- **WebSocket:** Эмитит 'case-opened' событие в live-feed room
-- **Примечание:** Emit обёрнут в try-catch и не прерывает основной функционал
+- **Порядок операций:**
+  1. Валидация (пользователь, кейс, баланс)
+  2. Weighted random выбор предмета
+  3. Транзакция БД (списание, добавление предмета, запись открытия)
+  4. WebSocket emit (live-feed)
+  5. Обновление статистики пользователя (favorite case, best drop)
+  6. Return результата
+- **Примечание:** 
+  - WebSocket emit обёрнут в try-catch и не прерывает функционал
+  - Обновление статистики обёрнуто в try-catch и не прерывает функционал
 
 #### **`getRecentOpenings(limit)`**
 

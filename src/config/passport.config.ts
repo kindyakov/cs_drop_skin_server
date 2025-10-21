@@ -28,7 +28,7 @@ passport.use(
 
         if (user) {
           logger.info(`Existing user found: ${user.username} (${user.id})`);
-          return done(null, user);
+          return done(null, { userId: user.id, role: user.role });
         }
 
         // Если пользователя нет, создаем нового
@@ -43,7 +43,7 @@ passport.use(
         });
 
         logger.info(`New user created: ${user.username} (${user.id})`);
-        return done(null, user);
+        return done(null, { userId: user.id, role: user.role });
       } catch (error) {
         logger.error('Steam OAuth error:', error);
         return done(error, undefined);
@@ -72,7 +72,7 @@ passport.use(
 
         if (user) {
           logger.info(`Existing user found: ${user.username} (${user.id})`);
-          return done(null, user);
+          return done(null, { userId: user.id, role: user.role });
         }
 
         // Если пользователя нет, создаем нового
@@ -87,7 +87,7 @@ passport.use(
         });
 
         logger.info(`New user created: ${user.username} (${user.id})`);
-        return done(null, user);
+        return done(null, { userId: user.id, role: user.role });
       } catch (error) {
         logger.error('VK OAuth error:', error);
         return done(error, undefined);
@@ -110,7 +110,7 @@ passport.deserializeUser(async (id: string, done) => {
       return done(new Error('User not found'), undefined);
     }
 
-    done(null, user);
+    done(null, { userId: user.id, role: user.role });
   } catch (error) {
     logger.error('Deserialize user error:', error);
     return done(error, undefined);

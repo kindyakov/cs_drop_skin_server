@@ -5,13 +5,8 @@ import { UserRoles, UserRole } from '../types/constants.js';
 import { logger } from './logger.middleware.js';
 import { prisma } from '../config/database.js';
 
-// Определяем тип для пользователя в middleware
-interface AuthenticatedRequest extends Request {
-  user?: {
-    userId: string;
-    role: UserRole;
-  };
-}
+// Используем тип Request напрямую, так как мы уже расширили его в express.d.ts
+type AuthenticatedRequest = Request;
 
 export const authenticate = async (req: Request, _res: Response, next: NextFunction) => {
   try {
@@ -36,6 +31,33 @@ export const authenticate = async (req: Request, _res: Response, next: NextFunct
     next();
   } catch (error) {
     next(error);
+  }
+};
+
+/**
+ * Опциональная аутентификация
+ * Проверяет JWT если токен присутствует, но НЕ требует его
+ */
+export const optionalAuth = async (req: Request, _res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+
+  // Если нет токена - просто продолжить
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return next();
+  }
+
+  const token = authHeader.substring(7);
+
+  try {
+    const decoded = verifyToken(token);
+    (req as AuthenticatedRequest).user = {
+      userId: decoded.userId,
+      role: decoded.role as UserRole,
+    };
+    next();
+  } catch (error) {
+    // Если токен невалидный - просто продолжить без user
+    next();
   }
 };
 

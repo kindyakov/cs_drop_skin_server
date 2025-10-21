@@ -3,6 +3,7 @@ import { ICaseOpeningResult, ILiveFeedEvent } from '../types/index.js';
 import { ValidationError, NotFoundError } from '../utils/index.js';
 import { emitCaseOpening } from '../config/socket.config.js';
 import { logger } from '../middleware/logger.middleware.js';
+import * as userService from './user.service.js';
 
 const prisma = new PrismaClient();
 
@@ -101,7 +102,8 @@ export const openCase = async (
     };
   });
 
-  // Эмитировать событие в live-feed ПОСЛЕ успешной транзакции
+  // === WEBSOCKET BROADCAST ===
+  // Эмитить событие в live-feed
   try {
     emitCaseOpening({
       id: result.newOpening.id,
@@ -117,6 +119,19 @@ export const openCase = async (
   } catch (emitError) {
     // Не прерываем выполнение если emit не удался
     logger.warn('Не удалось отправить событие в live-feed', { emitError });
+  }
+
+  // === USER STATS UPDATE ===
+  // Обновить статистику пользователя (favorite case, best drop)
+  try {
+    await userService.updateUserStats(userId, caseId, result.wonItem.id, result.wonItem.price);
+  } catch (statsError) {
+    // Не прерываем выполнение если обновление статистики не удалось
+    logger.warn('Не удалось обновить статистику пользователя', { 
+      statsError, 
+      userId, 
+      caseId 
+    });
   }
 
   logger.info('Кейс успешно открыт', {

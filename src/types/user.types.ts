@@ -45,6 +45,7 @@ export interface IUserPublicProfile {
   avatarUrl: string | null;
   role: UserRole;
   createdAt: Date;
+  steamProfileUrl: string | null;
   favoriteCase: {
     id: string;
     name: string;
