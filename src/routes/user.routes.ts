@@ -7,6 +7,6 @@ const router = Router();
 // Все роуты требуют авторизации
 router.get('/inventory', authenticate, userController.getInventory as any);
 router.get('/history', authenticate, userController.getOpeningsHistory as any);
-router.get('/:id', userController.getUser);
+router.get('/:id', userController.getProfile);
 
 export default router;

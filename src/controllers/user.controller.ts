@@ -32,10 +32,10 @@ export const getOpeningsHistory = async (
   }
 };
 
-export const getUser = async (req: Request, res: Response, next: NextFunction) => {
+export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.params.id;
-    const userProfile = await userService.getUserById(userId);
+    const userProfile = await userService.getProfileById(userId);
     successResponse(res, userProfile);
   } catch (error) {
     next(error);

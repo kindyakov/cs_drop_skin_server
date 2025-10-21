@@ -1,14 +1,22 @@
 import { PrismaClient } from '@prisma/client';
-import type { IUserItem } from '../types';
+import type { IUserItem, IUserPublicProfile, IUserExtendedProfile } from '../types/index.js';
 
 const prisma = new PrismaClient();
 
-// Получить инвентарь пользователя
-export const getUserInventory = async (userId: string): Promise<IUserItem[]> => {
+/**
+ * Получить инвентарь пользователя с пагинацией
+ */
+export const getUserInventory = async (
+  userId: string,
+  limit: number = 21,
+  offset: number = 0
+): Promise<IUserItem[]> => {
   const items = await prisma.userItem.findMany({
     where: { userId, status: 'OWNED' },
     include: { item: true },
     orderBy: { acquiredAt: 'desc' },
+    take: limit,
+    skip: offset,
   });
 
   return items;
@@ -29,44 +37,19 @@ export const getUserOpenings = async (userId: string, limit = 50) => {
   return openings;
 };
 
-export const getUserById = async (userId: string) => {
+/**
+ * Получить профиль пользователя по ID
+ * Возвращает публичный профиль или расширенный (если запрашивает свой)
+ */
+export const getProfileById = async (
+  userId: string,
+  requestingUserId?: string
+): Promise<IUserPublicProfile | IUserExtendedProfile | null> => {
+  // Получить пользователя с favorite case и best drop
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: {
-      id: true,
-      steamId: true,
-      username: true,
-      avatarUrl: true,
-      createdAt: true,
-    },
-  });
-
-  if (!user) {
-    return null;
-  }
-
-  // Формирование ссылки на Steam профиль
-  const steamProfileUrl = user.steamId 
-    ? `https://steamcommunity.com/profiles/${user.steamId}`
-    : null;
-
-  // Получить все предметы пользователя со статусом OWNED
-  const userItems = await prisma.userItem.findMany({
-    where: { 
-      userId,
-      status: 'OWNED',
-    },
     include: {
-      item: true,
-    },
-    orderBy: { acquiredAt: 'desc' },
-  });
-
-  // Получить все открытия пользователя
-  const openings = await prisma.caseOpening.findMany({
-    where: { userId },
-    include: {
-      case: {
+      favoriteCase: {
         select: {
           id: true,
           name: true,
@@ -74,36 +57,91 @@ export const getUserById = async (userId: string) => {
           imageUrl: true,
         },
       },
+      bestDrop: {
+        select: {
+          id: true,
+          displayName: true,
+          imageUrl: true,
+          price: true,
+          rarity: true,
+        },
+      },
     },
   });
 
-  // Создать map для быстрого поиска кейса по itemId
-  const itemToCaseMap = new Map();
-  openings.forEach((opening) => {
-    // Если несколько открытий одного предмета, берем последнее
-    if (!itemToCaseMap.has(opening.itemId)) {
-      itemToCaseMap.set(opening.itemId, opening.case);
-    }
+  if (!user) {
+    return null;
+  }
+
+  // Получить первые 21 предмет инвентаря (сортировка по дате получения)
+  const inventory = await prisma.userItem.findMany({
+    where: { userId, status: 'OWNED' },
+    include: { item: true },
+    orderBy: { acquiredAt: 'desc' },
+    take: 21,
   });
 
-  // Объединить userItems с информацией о кейсах
-  const itemsWithCases = userItems.map((userItem) => ({
-    id: userItem.id,
-    acquiredAt: userItem.acquiredAt,
-    status: userItem.status,
-    item: {
-      ...userItem.item,
-      price: userItem.item.price, // Цена в копейках
-    },
-    case: itemToCaseMap.get(userItem.itemId) || null,
-  }));
+  // Получить общее количество предметов
+  const totalItems = await prisma.userItem.count({
+    where: { userId, status: 'OWNED' },
+  });
 
-  return {
+  // Проверить, есть ли ещё предметы для подгрузки
+  const hasMore = totalItems > 21;
+
+  // Получить количество открытий favorite case
+  let favoriteCaseOpeningsCount = 0;
+  if (user.favoriteCaseId) {
+    favoriteCaseOpeningsCount = await prisma.caseOpening.count({
+      where: {
+        userId,
+        caseId: user.favoriteCaseId,
+      },
+    });
+  }
+
+  // Базовый публичный профиль
+  const publicProfile: IUserPublicProfile = {
     id: user.id,
     username: user.username,
     avatarUrl: user.avatarUrl,
-    steamProfileUrl,
+    role: user.role as any,
     createdAt: user.createdAt,
-    items: itemsWithCases,
+    favoriteCase: user.favoriteCase
+      ? {
+          ...user.favoriteCase,
+          openingsCount: favoriteCaseOpeningsCount,
+        }
+      : null,
+    bestDrop: user.bestDrop,
+    inventory,
+    totalItems,
+    hasMore,
   };
+
+  // Если пользователь запрашивает СВОЙ профиль - вернуть расширенные данные
+  const isOwnProfile = requestingUserId && requestingUserId === userId;
+
+  if (isOwnProfile) {
+    const extendedProfile: IUserExtendedProfile = {
+      ...publicProfile,
+      balance: user.balance,
+      tradeUrl: user.tradeUrl,
+      isBlocked: user.isBlocked,
+    };
+
+    return extendedProfile;
+  }
+
+  return publicProfile;
+};
+
+/**
+ * Обновить trade URL пользователя
+ */
+export const updateUserTradeUrl = async (userId: string, tradeUrl: string): Promise<void> => {
+  await prisma.user.update({
+    where: { id: userId },
+    data: { tradeUrl },
+  });
 };

@@ -68,42 +68,97 @@
 ## 👤 User Types (`user.types.ts`)
 
 ### Интерфейсы пользователей
-- **`IUser`** - Полный интерфейс пользователя (из Prisma)
-  ```typescript
-  {
-    id: string;
-    steamId: string | null;
-    vkId: string | null;
-    username: string;
-    avatarUrl: string | null;
-    balance: number;
-    role: UserRole;
-    isBlocked: boolean; // Статус блокировки
-    createdAt: Date;
-    updatedAt: Date;
-  }
-  ```
 
-- **`IUserProfile`** - Публичный профиль пользователя
-  ```typescript
-  {
-    id: string;
-    username: string;
-    avatarUrl: string | null;
-    balance: number;
-    role: UserRole;
-    isBlocked: boolean; // Статус блокировки
-    createdAt: Date;
-  }
-  ```
+#### **`IUser`** - Полный интерфейс пользователя (из Prisma)
+```typescript
+{
+  id: string;
+  steamId: string | null;
+  vkId: string | null;
+  username: string;
+  avatarUrl: string | null;
+  balance: number;
+  role: UserRole;
+  isBlocked: boolean;
+  tradeUrl: string | null; // Steam trade URL
+  favoriteCaseId: string | null; // ID любимого кейса
+  bestDropItemId: string | null; // ID лучшего дропа
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
 
-- **`IAuthResponse`** - Ответ авторизации
-  ```typescript
-  {
-    token: string;
-    user: IUserProfile;
-  }
-  ```
+#### **`IUserProfile`** - Публичный профиль пользователя
+```typescript
+{
+  id: string;
+  username: string;
+  avatarUrl: string | null;
+  balance: number;
+  role: UserRole;
+  isBlocked: boolean;
+  tradeUrl: string | null;
+  createdAt: Date;
+}
+```
+
+#### **`IAuthResponse`** - Ответ авторизации
+```typescript
+{
+  token: string;
+  user: IUserProfile;
+}
+```
+
+#### **`IUserPublicProfile`** - Профиль для публичного просмотра
+```typescript
+{
+  id: string;
+  username: string;
+  avatarUrl: string | null;
+  role: UserRole;
+  createdAt: Date;
+  favoriteCase: {
+    id: string;
+    name: string;
+    slug: string;
+    imageUrl: string;
+    openingsCount: number;
+  } | null;
+  bestDrop: {
+    id: string;
+    displayName: string;
+    imageUrl: string;
+    price: number;
+    rarity: string;
+  } | null;
+  inventory: IUserItem[]; // Первые 21 предмет
+  totalItems: number;
+  hasMore: boolean; // true если есть ещё предметы
+}
+```
+
+#### **`IUserExtendedProfile`** - Расширенный профиль (свой профиль)
+```typescript
+extends IUserPublicProfile {
+  balance: number;
+  tradeUrl: string | null;
+  isBlocked: boolean;
+}
+```
+
+#### **`IUpdateTradeUrlInput`** - Обновление trade URL
+```typescript
+{
+  tradeUrl: string; // Steam trade URL формата
+}
+```
+
+### **Примечания:**
+- **Favorite Case** - автоматически вычисляется как самый часто открываемый кейс
+- **Best Drop** - автоматически обновляется при открытии кейса с более дорогим предметом
+- **Trade URL** - может быть null, пользователь устанавливает сам
+- **Публичный vs Расширенный** - если пользователь запрашивает свой профиль с JWT, возвращается расширенная версия
 
 ---
 

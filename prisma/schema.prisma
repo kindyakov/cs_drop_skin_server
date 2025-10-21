@@ -47,17 +47,28 @@ model User {
   balance   Int      @default(0)
   role      UserRole @default(USER)
   isBlocked Boolean  @default(false)
+  
+  // Profile fields
+  tradeUrl        String?  // Steam trade URL
+  favoriteCaseId  String?  // ID самого часто открываемого кейса
+  bestDropItemId  String?  // ID самого дорогого выбитого предмета
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   items        UserItem[]
   openings     CaseOpening[]
   transactions Transaction[]
+  
+  favoriteCase Case? @relation("UserFavoriteCase", fields: [favoriteCaseId], references: [id], onDelete: SetNull)
+  bestDrop     Item? @relation("UserBestDrop", fields: [bestDropItemId], references: [id], onDelete: SetNull)
 
   @@index([steamId])
   @@index([vkId])
   @@index([role])
   @@index([isBlocked])
+  @@index([favoriteCaseId])
+  @@index([bestDropItemId])
   @@map("users")
 }
 
@@ -96,8 +107,9 @@ model Case {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  items    CaseItem[]
-  openings CaseOpening[]
+  items       CaseItem[]
+  openings    CaseOpening[]
+  favoritedBy User[]   @relation("UserFavoriteCase")
 
   @@index([slug])
   @@index([isActive])
@@ -115,9 +127,10 @@ model Item {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
-  caseItems CaseItem[]
-  userItems UserItem[]
-  openings  CaseOpening[]
+  caseItems   CaseItem[]
+  userItems   UserItem[]
+  openings    CaseOpening[]
+  bestDropFor User[] @relation("UserBestDrop")
 
   @@index([marketHashName])
   @@index([rarity])
