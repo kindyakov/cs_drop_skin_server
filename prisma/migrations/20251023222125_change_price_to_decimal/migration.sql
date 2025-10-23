@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "cases" ALTER COLUMN "price" SET DATA TYPE DECIMAL(10,2);
+
+-- AlterTable
+ALTER TABLE "items" ALTER COLUMN "price" SET DATA TYPE DECIMAL(10,2);

@@ -5,11 +5,91 @@ import type {
   IAddItemsToCaseInput,
 } from '../../types/admin.types.js';
 import type { ICase, ICaseWithItems } from '../../types/case.types.js';
-import { slugify } from '../../utils/helpers.util.js';
-import { NotFoundError, ValidationError } from '../../utils/errors.util.js';
-import { logger } from '../../middleware/logger.middleware.js';
+import { slugify } from '@utils/helpers.util.js';
+import { NotFoundError, ValidationError } from '@utils/errors.util.js';
+import { logger } from '@middleware/logger.middleware.js';
 
 const prisma = new PrismaClient();
+
+/**
+ * Получить все кейсы (включая неактивные)
+ */
+export const getAllCases = async (): Promise<ICaseWithItems[]> => {
+  try {
+    const cases = await prisma.case.findMany({
+      include: {
+        category: true,
+        items: {
+          include: { item: true },
+          orderBy: { chancePercent: 'desc' },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Конвертируем Decimal в number для chancePercent и price
+    const formattedCases = cases.map((caseData) => ({
+      ...caseData,
+      price: caseData.price.toNumber(),
+      items: caseData.items.map((caseItem) => ({
+        id: caseItem.id,
+        chancePercent: caseItem.chancePercent.toNumber(),
+        item: {
+          ...caseItem.item,
+          price: caseItem.item.price.toNumber(),
+        },
+      })),
+    }));
+
+    logger.info('Получен список всех кейсов', { count: formattedCases.length });
+    return formattedCases;
+  } catch (error) {
+    logger.error('Ошибка получения списка кейсов', { error });
+    throw error;
+  }
+};
+
+/**
+ * Получить кейс по ID с полной информацией
+ */
+export const getCaseById = async (id: string): Promise<ICaseWithItems> => {
+  try {
+    const caseData = await prisma.case.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        items: {
+          include: { item: true },
+          orderBy: { chancePercent: 'desc' },
+        },
+      },
+    });
+
+    if (!caseData) {
+      throw new NotFoundError('Кейс не найден');
+    }
+
+    // Конвертируем Decimal в number для chancePercent и price
+    const formattedCase: ICaseWithItems = {
+      ...caseData,
+      price: caseData.price.toNumber(),
+      items: caseData.items.map((caseItem) => ({
+        id: caseItem.id,
+        chancePercent: caseItem.chancePercent.toNumber(),
+        item: {
+          ...caseItem.item,
+          price: caseItem.item.price.toNumber(),
+        },
+      })),
+    };
+
+    logger.info('Получен кейс по ID', { caseId: id });
+    return formattedCase;
+  } catch (error) {
+    logger.error('Ошибка получения кейса по ID', { error, id });
+    throw error;
+  }
+};
 
 /**
  * Создать новый кейс
@@ -39,7 +119,10 @@ export const createCase = async (input: ICreateCaseInput): Promise<ICase> => {
     });
 
     logger.info('Кейс создан', { caseId: newCase.id, name: newCase.name });
-    return newCase;
+    return {
+      ...newCase,
+      price: newCase.price.toNumber(),
+    };
   } catch (error) {
     logger.error('Ошибка создания кейса', { error, input });
     throw error;
@@ -49,10 +132,7 @@ export const createCase = async (input: ICreateCaseInput): Promise<ICase> => {
 /**
  * Обновить кейс
  */
-export const updateCase = async (
-  id: string,
-  input: IUpdateCaseInput
-): Promise<ICase> => {
+export const updateCase = async (id: string, input: IUpdateCaseInput): Promise<ICase> => {
   try {
     // 1. Проверить существование кейса
     const existingCase = await prisma.case.findUnique({ where: { id } });
@@ -87,7 +167,10 @@ export const updateCase = async (
     });
 
     logger.info('Кейс обновлён', { caseId: id });
-    return updatedCase;
+    return {
+      ...updatedCase,
+      price: updatedCase.price.toNumber(),
+    };
   } catch (error) {
     logger.error('Ошибка обновления кейса', { error, id, input });
     throw error;
@@ -136,13 +219,11 @@ export const addItemsToCase = async (
     const totalChance = input.items.reduce((sum, item) => sum + item.chancePercent, 0);
     if (Math.abs(totalChance - 100) > 0.01) {
       // допуск на погрешность
-      throw new ValidationError(
-        `Сумма шансов должна быть 100%. Текущая сумма: ${totalChance}%`
-      );
+      throw new ValidationError(`Сумма шансов должна быть 100%. Текущая сумма: ${totalChance}%`);
     }
 
     // 3. Проверить существование всех предметов
-    const itemIds = input.items.map(item => item.itemId);
+    const itemIds = input.items.map((item) => item.itemId);
     const items = await prisma.item.findMany({
       where: { id: { in: itemIds } },
     });
@@ -152,7 +233,7 @@ export const addItemsToCase = async (
 
     // 4. Добавить предметы в кейс (в транзакции)
     await prisma.$transaction(
-      input.items.map(item =>
+      input.items.map((item) =>
         prisma.caseItem.create({
           data: {
             caseId,
@@ -185,10 +266,14 @@ export const addItemsToCase = async (
 
     const formattedCase: ICaseWithItems = {
       ...caseWithItems,
-      items: caseWithItems.items.map(caseItem => ({
+      price: caseWithItems.price.toNumber(),
+      items: caseWithItems.items.map((caseItem) => ({
         id: caseItem.id,
         chancePercent: caseItem.chancePercent.toNumber(),
-        item: caseItem.item,
+        item: {
+          ...caseItem.item,
+          price: caseItem.item.price.toNumber(),
+        },
       })),
     };
 

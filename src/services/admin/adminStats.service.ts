@@ -153,12 +153,13 @@ export const getPopularCases = async (limit: number = 10): Promise<IPopularCase[
     // Собрать результат
     const popularCases: IPopularCase[] = casesWithStats.map((stat) => {
       const caseData = casesMap.get(stat.caseId);
+      const price = caseData?.price ? caseData.price.toNumber() : 0;
       return {
         id: stat.caseId,
         name: caseData?.name || 'Unknown',
         imageUrl: caseData?.imageUrl || '',
         openingsCount: stat._count.id,
-        revenue: (caseData?.price || 0) * stat._count.id,
+        revenue: price * stat._count.id,
       };
     });
 

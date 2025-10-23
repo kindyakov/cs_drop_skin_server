@@ -57,8 +57,8 @@ export const validateCreateCase = [
   body('price')
     .notEmpty()
     .withMessage('price обязателен')
-    .isInt({ min: 1 })
-    .withMessage('price должен быть положительным числом в копейках'),
+    .isFloat({ min: 10.0 })
+    .withMessage('price должен быть положительным числом'),
   body('description').optional().isString().withMessage('description должен быть строкой'),
   body('isActive').optional().isBoolean().withMessage('isActive должен быть boolean'),
   handleValidationErrors,
@@ -75,7 +75,10 @@ export const validateUpdateCase = [
     .isLength({ min: 3, max: 100 })
     .withMessage('name должен быть от 3 до 100 символов'),
   body('imageUrl').optional().isString().withMessage('imageUrl должен быть строкой'),
-  body('price').optional().isInt({ min: 1 }).withMessage('price должен быть положительным числом'),
+  body('price')
+    .optional()
+    .isFloat({ min: 0.01 })
+    .withMessage('price должен быть положительным числом'),
   body('description').optional().isString().withMessage('description должен быть строкой'),
   body('isActive').optional().isBoolean().withMessage('isActive должен быть boolean'),
   handleValidationErrors,
@@ -110,22 +113,13 @@ export const validateCreateCategory = [
     .withMessage('name должен быть строкой')
     .isLength({ min: 3, max: 100 })
     .withMessage('name должен быть от 3 до 100 символов'),
-  body('description')
-    .optional()
-    .isString()
-    .withMessage('description должен быть строкой'),
-  body('imageUrl')
-    .optional()
-    .isString()
-    .withMessage('imageUrl должен быть строкой'),
+  body('description').optional().isString().withMessage('description должен быть строкой'),
+  body('imageUrl').optional().isString().withMessage('imageUrl должен быть строкой'),
   body('order')
     .optional()
     .isInt({ min: 0 })
     .withMessage('order должен быть неотрицательным числом'),
-  body('isActive')
-    .optional()
-    .isBoolean()
-    .withMessage('isActive должен быть boolean'),
+  body('isActive').optional().isBoolean().withMessage('isActive должен быть boolean'),
   handleValidationErrors,
 ];
 
@@ -139,22 +133,13 @@ export const validateUpdateCategory = [
     .withMessage('name должен быть строкой')
     .isLength({ min: 3, max: 100 })
     .withMessage('name должен быть от 3 до 100 символов'),
-  body('description')
-    .optional()
-    .isString()
-    .withMessage('description должен быть строкой'),
-  body('imageUrl')
-    .optional()
-    .isString()
-    .withMessage('imageUrl должен быть строкой'),
+  body('description').optional().isString().withMessage('description должен быть строкой'),
+  body('imageUrl').optional().isString().withMessage('imageUrl должен быть строкой'),
   body('order')
     .optional()
     .isInt({ min: 0 })
     .withMessage('order должен быть неотрицательным числом'),
-  body('isActive')
-    .optional()
-    .isBoolean()
-    .withMessage('isActive должен быть boolean'),
+  body('isActive').optional().isBoolean().withMessage('isActive должен быть boolean'),
   handleValidationErrors,
 ];
 
@@ -162,12 +147,8 @@ export const validateUpdateCategory = [
  * Валидация для назначения кейсов категории (Admin)
  */
 export const validateAssignCases = [
-  body('caseIds')
-    .isArray({ min: 1 })
-    .withMessage('caseIds должен быть непустым массивом'),
-  body('caseIds.*')
-    .isString()
-    .withMessage('Каждый caseId должен быть строкой'),
+  body('caseIds').isArray({ min: 1 }).withMessage('caseIds должен быть непустым массивом'),
+  body('caseIds.*').isString().withMessage('Каждый caseId должен быть строкой'),
   handleValidationErrors,
 ];
 
@@ -199,12 +180,8 @@ export const validateTradeUrl = [
     .isString()
     .withMessage('tradeUrl должен быть строкой')
     .matches(/^https:\/\/steamcommunity\.com\/tradeoffer\/new\/\?partner=\d+&token=[a-zA-Z0-9_-]+$/)
-    .withMessage('Неверный формат Steam trade URL. Пример: https://steamcommunity.com/tradeoffer/new/?partner=123456789&token=AbCdEfGh'),
+    .withMessage(
+      'Неверный формат Steam trade URL. Пример: https://steamcommunity.com/tradeoffer/new/?partner=123456789&token=AbCdEfGh'
+    ),
   handleValidationErrors,
 ];
-
-
-
-
-
-

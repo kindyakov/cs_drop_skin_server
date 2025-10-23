@@ -4,6 +4,39 @@ import * as adminCaseService from '../../services/admin/adminCase.service.js';
 import { successResponse } from '../../utils/index.js';
 
 /**
+ * Получить все кейсы (для админки)
+ */
+export const getAllCases = async (
+  _req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const cases = await adminCaseService.getAllCases();
+    successResponse(res, cases, 'Список кейсов получен');
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Получить кейс по ID (для админки)
+ */
+export const getCaseById = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+    const caseData = await adminCaseService.getCaseById(id);
+    successResponse(res, caseData, 'Кейс получен');
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Создать кейс
  */
 export const createCase = async (

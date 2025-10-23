@@ -98,7 +98,7 @@ model Case {
   slug        String   @unique
   description String?
   imageUrl    String
-  price       Int
+  price       Decimal  @db.Decimal(10, 2)
   isActive    Boolean  @default(true)
   
   categoryId  String?
@@ -122,7 +122,7 @@ model Item {
   marketHashName String  @unique
   displayName    String
   imageUrl    String
-  price       Int
+  price       Decimal    @db.Decimal(10, 2)
   rarity      ItemRarity
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt

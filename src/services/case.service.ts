@@ -21,7 +21,11 @@ export const getAllActiveCases = async (): Promise<ICase[]> => {
       orderBy: { createdAt: 'desc' },
     });
 
-    return cases;
+    // Конвертируем Decimal в number для price
+    return cases.map((caseData) => ({
+      ...caseData,
+      price: caseData.price.toNumber(),
+    }));
   } catch (error) {
     logger.error('Ошибка получения кейсов', { error });
     throw error;
@@ -52,15 +56,20 @@ export const getCaseBySlug = async (slug: string): Promise<ICaseWithItems> => {
     }
 
     // Конвертировать Decimal в number
-    const formattedCase = {
+    const formattedCase: ICaseWithItems = {
       ...caseData,
+      price: caseData.price.toNumber(),
       items: caseData.items.map((ci) => ({
-        ...ci,
-        chancePercent: Number(ci.chancePercent),
+        id: ci.id,
+        chancePercent: ci.chancePercent.toNumber(),
+        item: {
+          ...ci.item,
+          price: ci.item.price.toNumber(),
+        },
       })),
     };
 
-    return formattedCase as ICaseWithItems;
+    return formattedCase;
   } catch (error) {
     logger.error('Ошибка получения кейса', { error, slug });
     throw error;
@@ -76,5 +85,8 @@ export const getCaseById = async (id: string): Promise<ICase> => {
     throw new NotFoundError('Кейс не найден');
   }
 
-  return caseData;
+  return {
+    ...caseData,
+    price: caseData.price.toNumber(),
+  };
 };

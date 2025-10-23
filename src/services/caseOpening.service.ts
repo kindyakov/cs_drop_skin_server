@@ -46,7 +46,7 @@ export const openCase = async (
     }
 
     // 3. Проверить баланс
-    const casePrice = caseData.price;
+    const casePrice = caseData.price.toNumber();
     if (user.balance < casePrice) {
       throw new ValidationError('Недостаточно средств');
     }
@@ -124,13 +124,13 @@ export const openCase = async (
   // === USER STATS UPDATE ===
   // Обновить статистику пользователя (favorite case, best drop)
   try {
-    await userService.updateUserStats(userId, caseId, result.wonItem.id, result.wonItem.price);
+    await userService.updateUserStats(userId, caseId, result.wonItem.id, result.wonItem.price.toNumber());
   } catch (statsError) {
     // Не прерываем выполнение если обновление статистики не удалось
-    logger.warn('Не удалось обновить статистику пользователя', { 
-      statsError, 
-      userId, 
-      caseId 
+    logger.warn('Не удалось обновить статистику пользователя', {
+      statsError,
+      userId,
+      caseId
     });
   }
 
@@ -143,7 +143,10 @@ export const openCase = async (
 
   return {
     success: true,
-    item: result.wonItem,
+    item: {
+      ...result.wonItem,
+      price: result.wonItem.price.toNumber(),
+    },
     newBalance: result.newBalance,
   };
 };

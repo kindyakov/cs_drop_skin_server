@@ -20,6 +20,12 @@ router.use(adminRateLimiter);
 // ADMIN CASE ROUTES
 // ==============================================
 
+// Получить все кейсы (включая неактивные)
+router.get('/', adminCaseController.getAllCases as any);
+
+// Получить кейс по ID
+router.get('/:id', adminCaseController.getCaseById as any);
+
 // Создать кейс
 router.post('/', validateCreateCase, adminCaseController.createCase as any);
 

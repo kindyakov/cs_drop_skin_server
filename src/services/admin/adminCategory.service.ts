@@ -6,10 +6,10 @@ import type {
   ICreateCategoryInput,
   IUpdateCategoryInput,
   IAssignCasesToCategoryInput,
-} from '../../types/category.types.js';
-import { slugify } from '../../utils/helpers.util.js';
-import { NotFoundError, ValidationError } from '../../utils/errors.util.js';
-import { logger } from '../../middleware/logger.middleware.js';
+} from '../../types/category.types';
+import { slugify } from '@utils/helpers.util';
+import { NotFoundError, ValidationError } from '@utils/errors.util';
+import { logger } from '@middleware/logger.middleware';
 
 const prisma = new PrismaClient();
 
@@ -60,7 +60,14 @@ export const getCategoryById = async (id: string): Promise<ICategoryWithCases> =
       throw new NotFoundError('Категория не найдена');
     }
 
-    return category;
+    // Конвертируем Decimal в number для price
+    return {
+      ...category,
+      cases: category.cases.map((caseData) => ({
+        ...caseData,
+        price: caseData.price.toNumber(),
+      })),
+    };
   } catch (error) {
     logger.error('Ошибка получения категории', { error, id });
     throw error;

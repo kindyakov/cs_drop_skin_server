@@ -19,7 +19,14 @@ export const getUserInventory = async (
     skip: offset,
   });
 
-  return items;
+  // Конвертируем Decimal в number для price
+  return items.map((userItem) => ({
+    ...userItem,
+    item: {
+      ...userItem.item,
+      price: userItem.item.price.toNumber(),
+    },
+  }));
 };
 
 // Получить историю открытий
@@ -74,12 +81,21 @@ export const getProfileById = async (
   }
 
   // Получить первые 21 предмет инвентаря (сортировка по дате получения)
-  const inventory = await prisma.userItem.findMany({
+  const inventoryRaw = await prisma.userItem.findMany({
     where: { userId, status: 'OWNED' },
     include: { item: true },
     orderBy: { acquiredAt: 'desc' },
     take: 21,
   });
+
+  // Конвертируем Decimal в number для price
+  const inventory = inventoryRaw.map((userItem) => ({
+    ...userItem,
+    item: {
+      ...userItem.item,
+      price: userItem.item.price.toNumber(),
+    },
+  }));
 
   // Получить общее количество предметов
   const totalItems = await prisma.userItem.count({
@@ -118,7 +134,12 @@ export const getProfileById = async (
           openingsCount: favoriteCaseOpeningsCount,
         }
       : null,
-    bestDrop: user.bestDrop,
+    bestDrop: user.bestDrop
+      ? {
+          ...user.bestDrop,
+          price: user.bestDrop.price.toNumber(),
+        }
+      : null,
     inventory,
     totalItems,
     hasMore,
@@ -197,7 +218,7 @@ export const updateUserStats = async (
       });
 
       // Если новый предмет дороже - обновить
-      if (!currentBestDrop || itemPrice > currentBestDrop.price) {
+      if (!currentBestDrop || itemPrice > currentBestDrop.price.toNumber()) {
         bestDropItemId = itemId;
       }
     } else {
