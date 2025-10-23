@@ -5,6 +5,8 @@ import { prisma } from './config/database.js';
 import { initializeSocket } from './config/socket.config.js';
 import { logger } from './middleware/logger.middleware.js';
 import { startItemsSyncJob } from './jobs/syncItems.job.js';
+import { startUpdateItemPricesJob } from './jobs/updateItemPrices.job.js';
+import { skinsCache } from './utils/skinsCache.util.js';
 
 const PORT = config.port;
 
@@ -23,8 +25,14 @@ const startServer = async () => {
     await prisma.$connect();
     logger.info('Подключение к базе данных установлено');
 
-    // Запуск cron job для синхронизации скинов
+    // Загрузить кеш скинов в память (индексирование для быстрого поиска)
+    await skinsCache.load();
+
+    // Запуск cron job для синхронизации скинов (каждый день в 03:00)
     startItemsSyncJob();
+
+    // Запуск cron job для обновления цен скинов (каждый день в 04:00)
+    startUpdateItemPricesJob();
 
     // Запуск сервера
     httpServer.listen(PORT, () => {

@@ -99,8 +99,17 @@ export const addItemsToCase = async (
   try {
     const { id } = req.params;
     const input = req.body; // IAddItemsToCaseInput
-    const caseWithItems = await adminCaseService.addItemsToCase(id, input);
-    successResponse(res, caseWithItems, 'Предметы успешно добавлены в кейс');
+    const { caseWithItems, warnings } = await adminCaseService.addItemsToCase(id, input);
+
+    // Вернуть успешный результат с предупреждениями
+    res.json({
+      success: true,
+      data: caseWithItems,
+      warnings: warnings.length > 0 ? warnings : undefined,
+      message: warnings.length > 0
+        ? `Добавлено ${caseWithItems.items.length} скинов с ${warnings.length} ошибками`
+        : 'Предметы успешно добавлены в кейс',
+    });
   } catch (error) {
     next(error);
   }

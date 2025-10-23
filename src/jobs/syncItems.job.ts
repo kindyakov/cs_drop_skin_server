@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { logger } from '@middleware/logger.middleware.js';
 import { csApiService } from '../services/csApi.service.js';
+import { skinsCache } from '../utils/skinsCache.util.js';
 
 /**
  * Запуск синхронизации скинов из CSGO-API
@@ -28,6 +29,9 @@ export const startItemsSyncJob = () => {
 
       // Выполнение синхронизации
       const syncResult = await csApiService.syncSkinsCache();
+
+      // Перезагрузить кеш скинов в памяти (пересчитать индексы)
+      await skinsCache.reload();
 
       const totalDuration = Date.now() - startTime;
 
@@ -82,6 +86,10 @@ export const manualSyncItems = async (): Promise<void> => {
     });
 
     const syncResult = await csApiService.syncSkinsCache();
+
+    // Перезагрузить кеш скинов в памяти
+    await skinsCache.reload();
+
     const totalDuration = Date.now() - startTime;
 
     logger.info('✅ Manual CSGO skins synchronization completed', {

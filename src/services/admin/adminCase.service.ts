@@ -5,11 +5,46 @@ import type {
   IAddItemsToCaseInput,
 } from '../../types/admin.types.js';
 import type { ICase, ICaseWithItems } from '../../types/case.types.js';
+import type { ItemRarity } from '../../types/constants.js';
+import { ItemRarities } from '../../types/constants.js';
 import { slugify } from '@utils/helpers.util.js';
 import { NotFoundError, ValidationError } from '@utils/errors.util.js';
 import { logger } from '@middleware/logger.middleware.js';
+import { skinsCache } from '../../utils/skinsCache.util.js';
 
 const prisma = new PrismaClient();
+
+/**
+ * Маппинг ID редкости из skins-cache.json на ItemRarity enum
+ * Преобразует редкости CS2 API в игровые редкости ItemRarity
+ */
+const mapRarityIdToEnum = (rarityId: string): ItemRarity => {
+  const rarityMap: Record<string, ItemRarity> = {
+    // Обычные скины (Ширпотреб)
+    rarity_common_weapon: ItemRarities.CONSUMER,
+
+    // Промышленное качество
+    rarity_uncommon_weapon: ItemRarities.INDUSTRIAL,
+
+    // Армейское качество
+    rarity_rare_weapon: ItemRarities.MIL_SPEC,
+
+    // Запрещённое
+    rarity_mythical_weapon: ItemRarities.RESTRICTED,
+
+    // Засекреченное
+    rarity_legendary_weapon: ItemRarities.CLASSIFIED,
+
+    // Элитные (древние и экстраординарные)
+    rarity_ancient: ItemRarities.COVERT,
+    rarity_ancient_weapon: ItemRarities.COVERT,
+
+    // Контрабанда (тоже редкая)
+    rarity_contraband_weapon: ItemRarities.COVERT,
+  };
+
+  return rarityMap[rarityId] || ItemRarities.CONSUMER; // Дефолт на CONSUMER если не найдено
+};
 
 /**
  * Получить все кейсы (включая неактивные)
@@ -203,37 +238,139 @@ export const deleteCase = async (id: string): Promise<void> => {
 
 /**
  * Добавить предметы в кейс
+ * Автоматически создает скины на основе marketHashName
+ * Извлекает полные данные (название, изображение, редкость) из skins-cache.json
+ * Получает цены из market.csgo.com для новых скинов
+ * Проверяет дубликаты и валидирует суммы шансов
  */
 export const addItemsToCase = async (
   caseId: string,
   input: IAddItemsToCaseInput
-): Promise<ICaseWithItems> => {
+): Promise<{ caseWithItems: ICaseWithItems; warnings: any[] }> => {
   try {
+    // Импортируем сервис для получения цен
+    const { fetchPriceForSkin } = await import('../marketPrice.service.js');
+
     // 1. Проверить существование кейса
     const existingCase = await prisma.case.findUnique({ where: { id: caseId } });
     if (!existingCase) {
       throw new NotFoundError('Кейс не найден');
     }
 
-    // 2. Валидация: сумма шансов должна быть 100%
-    const totalChance = input.items.reduce((sum, item) => sum + item.chancePercent, 0);
-    if (Math.abs(totalChance - 100) > 0.01) {
-      // допуск на погрешность
-      throw new ValidationError(`Сумма шансов должна быть 100%. Текущая сумма: ${totalChance}%`);
-    }
-
-    // 3. Проверить существование всех предметов
-    const itemIds = input.items.map((item) => item.itemId);
-    const items = await prisma.item.findMany({
-      where: { id: { in: itemIds } },
+    // 2. Получить все уже существующие скины в кейсе
+    const existingItems = await prisma.caseItem.findMany({
+      where: { caseId },
+      include: { item: true },
     });
-    if (items.length !== itemIds.length) {
-      throw new NotFoundError('Один или несколько предметов не найдены');
+    const existingMarketHashNames = new Set(existingItems.map((ci) => ci.item.marketHashName));
+
+    // 3. Обработать каждый входящий предмет
+    const warnings: any[] = [];
+    const itemsToCreate: Array<{
+      itemId: string;
+      chancePercent: number;
+    }> = [];
+
+    for (const inputItem of input.items) {
+      const marketHashName = inputItem.marketHashName;
+
+      // Проверка дубликата ДО обработки
+      if (existingMarketHashNames.has(marketHashName)) {
+        warnings.push({
+          skinName: marketHashName,
+          error: 'Этот скин уже добавлен в кейс',
+          type: 'DUPLICATE',
+        });
+        continue;
+      }
+
+      // Попробовать найти скин в БД
+      let item = await prisma.item.findUnique({
+        where: { marketHashName },
+      });
+
+      // Если скина нет в БД - создать новый
+      if (!item) {
+        logger.info('Скин не найден в БД, ищу в skins-cache.json и получаю цену', {
+          marketHashName,
+        });
+
+        // Получить полные данные скина из кеша
+        const cachedSkin = skinsCache.findByHashName(marketHashName);
+
+        if (!cachedSkin) {
+          warnings.push({
+            skinName: marketHashName,
+            error: 'Скин не найден ни в базе, ни в кэше скинов',
+            type: 'NOT_FOUND',
+          });
+          continue;
+        }
+
+        // Получить цену из market.csgo.com
+        const priceResult = await fetchPriceForSkin(marketHashName);
+
+        if (!priceResult.success) {
+          warnings.push({
+            skinName: marketHashName,
+            error: priceResult.error || 'Не удалось получить цену',
+            type: 'PRICE_ERROR',
+          });
+          continue;
+        }
+
+        // Создать новый скин со всеми полными данными из кеша
+        try {
+          item = await prisma.item.create({
+            data: {
+              marketHashName: cachedSkin.market_hash_name,
+              displayName: cachedSkin.name,
+              imageUrl: cachedSkin.image,
+              price: priceResult.price!,
+              rarity: mapRarityIdToEnum(cachedSkin.rarity.id),
+            },
+          });
+
+          logger.info('Новый скин создан из кеша с полными данными', {
+            itemId: item.id,
+            marketHashName: item.marketHashName,
+            displayName: item.displayName,
+            price: item.price,
+            rarity: item.rarity,
+          });
+        } catch (createError) {
+          logger.error('Ошибка создания скина', {
+            error: createError,
+            marketHashName,
+          });
+
+          warnings.push({
+            skinName: marketHashName,
+            error: 'Ошибка создания скина в базе',
+            type: 'VALIDATION_ERROR',
+          });
+          continue;
+        }
+      }
+
+      itemsToCreate.push({
+        itemId: item.id,
+        chancePercent: inputItem.chancePercent,
+      });
+
+      existingMarketHashNames.add(marketHashName);
     }
 
-    // 4. Добавить предметы в кейс (в транзакции)
+    // 4. Если нечего добавлять - вернуть ошибку
+    if (itemsToCreate.length === 0) {
+      throw new ValidationError(
+        `Не удалось добавить ни один скин. Ошибки: ${warnings.map((w) => w.error).join(', ')}`
+      );
+    }
+
+    // 5. Добавить предметы в кейс (в транзакции)
     await prisma.$transaction(
-      input.items.map((item) =>
+      itemsToCreate.map((item) =>
         prisma.caseItem.create({
           data: {
             caseId,
@@ -244,7 +381,7 @@ export const addItemsToCase = async (
       )
     );
 
-    // 5. Вернуть кейс с предметами
+    // 6. Вернуть кейс с предметами
     const caseWithItems = await prisma.case.findUnique({
       where: { id: caseId },
       include: {
@@ -257,7 +394,8 @@ export const addItemsToCase = async (
 
     logger.info('Предметы добавлены в кейс', {
       caseId,
-      itemsCount: input.items.length,
+      successful: itemsToCreate.length,
+      failed: warnings.length,
     });
 
     if (!caseWithItems) {
@@ -277,7 +415,7 @@ export const addItemsToCase = async (
       })),
     };
 
-    return formattedCase;
+    return { caseWithItems: formattedCase, warnings };
   } catch (error) {
     logger.error('Ошибка добавления предметов в кейс', { error, caseId, input });
     throw error;

@@ -89,16 +89,28 @@ export const validateUpdateCase = [
  */
 export const validateAddItemsToCase = [
   body('items').isArray({ min: 1 }).withMessage('items должен быть непустым массивом'),
-  body('items.*.itemId')
+  body('items.*.marketHashName')
     .notEmpty()
-    .withMessage('itemId обязателен')
+    .withMessage('marketHashName обязателен')
     .isString()
-    .withMessage('itemId должен быть строкой'),
+    .withMessage('marketHashName должен быть строкой')
+    .isLength({ min: 3, max: 255 })
+    .withMessage('marketHashName должен быть от 3 до 255 символов'),
   body('items.*.chancePercent')
     .notEmpty()
     .withMessage('chancePercent обязателен')
     .isFloat({ min: 0.01, max: 100 })
     .withMessage('chancePercent должен быть от 0.01 до 100'),
+  // Проверка суммы всех шансов - не должна превышать 100%
+  body('items').custom((items) => {
+    const totalChance = items.reduce((sum: number, item: any) => sum + parseFloat(item.chancePercent), 0);
+    const roundedTotal = Math.round(totalChance * 100) / 100; // Округляем для избежания ошибок с float
+
+    if (roundedTotal > 100.01) { // Допуск 0.01% для погрешности float
+      throw new Error(`Сумма шансов ${roundedTotal}% превышает максимум 100%. Пожалуйста, уменьшите значения.`);
+    }
+    return true;
+  }),
   handleValidationErrors,
 ];
 

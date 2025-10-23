@@ -28,9 +28,11 @@ export interface IUpdateCaseInput {
 
 /**
  * Входные данные для добавления предмета в кейс
+ * Автоматически создаст скин если его нет в БД, извлекая полные данные из skins-cache.json
+ * Получает цены из market.csgo.com для новых скинов
  */
 export interface IAddItemToCaseInput {
-  itemId: string;
+  marketHashName: string; // Полное название скина (например: "AK-47 | Затерянная земля (Factory New)")
   chancePercent: number; // 0.01 - 100
 }
 
@@ -39,6 +41,24 @@ export interface IAddItemToCaseInput {
  */
 export interface IAddItemsToCaseInput {
   items: IAddItemToCaseInput[];
+}
+
+/**
+ * Результат ошибки при добавлении скина в кейс
+ */
+export interface IAddItemError {
+  skinName: string;
+  error: string; // Описание ошибки
+  type: 'DUPLICATE' | 'PRICE_ERROR' | 'VALIDATION_ERROR' | 'NOT_FOUND';
+}
+
+/**
+ * Результат добавления скинов в кейс с поддержкой ошибок
+ */
+export interface IAddItemsResult {
+  successful: number;
+  failed: number;
+  warnings: IAddItemError[];
 }
 
 // ==============================================

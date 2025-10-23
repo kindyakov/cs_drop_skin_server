@@ -131,16 +131,22 @@ const morganStream = {
   write: (message: string) => {
     // Удаляем перенос строки в конце
     const cleanMessage = message.trim();
-    
+
     // Определяем уровень логирования на основе статуса
     let logLevel = LogLevel.INFO;
-    
-    if (cleanMessage.includes(' 4')) {
-      logLevel = LogLevel.WARN;
-    } else if (cleanMessage.includes(' 5')) {
-      logLevel = LogLevel.ERROR;
+
+    // Извлекаем статус код из сообщения (это второе число)
+    // Формат: "METHOD URL STATUS CONTENT-LENGTH - RESPONSE-TIME IP"
+    const statusMatch = cleanMessage.match(/\s(\d{3})\s/);
+    if (statusMatch) {
+      const statusCode = parseInt(statusMatch[1], 10);
+      if (statusCode >= 400 && statusCode < 500) {
+        logLevel = LogLevel.WARN;
+      } else if (statusCode >= 500) {
+        logLevel = LogLevel.ERROR;
+      }
     }
-    
+
     logger.log(logLevel, cleanMessage, {
       type: 'http_request'
     });

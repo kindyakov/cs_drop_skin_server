@@ -91,6 +91,12 @@ export const openCase = async (
       },
     });
 
+    // 9. Инкрементировать счётчик открытий кейса (для метрик)
+    await tx.case.update({
+      where: { id: caseId },
+      data: { openingsCount: { increment: 1 } },
+    });
+
     const newBalance = user.balance - casePrice;
 
     return {

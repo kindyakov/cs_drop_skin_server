@@ -66,7 +66,7 @@ GET  /api/v1/payments/transactions     → История транзакций (
 ```
 POST   /api/v1/admin/cases           → Создать кейс (Admin + JWT + rate limit)
 GET    /api/v1/admin/cases           → Получить все кейсы (Admin + JWT + rate limit)
-GET    /api/v1/admin/cases:id        → Получить кейс по ID (Admin + JWT + rate limit)
+GET    /api/v1/admin/cases/:id        → Получить кейс по ID (Admin + JWT + rate limit)
 PUT    /api/v1/admin/cases/:id       → Обновить кейс (Admin + JWT + rate limit)
 DELETE /api/v1/admin/cases/:id       → Удалить кейс (Admin + JWT + rate limit)
 POST   /api/v1/admin/cases/:id/items → Добавить предметы в кейс (Admin + JWT + rate limit)
