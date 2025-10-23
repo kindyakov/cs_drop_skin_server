@@ -54,4 +54,6 @@ coverage/
 temp/
 tmp/
 
-promt.md
+test-csapi.ts
+
+CLAUDE.md

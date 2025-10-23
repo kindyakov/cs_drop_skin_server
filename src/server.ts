@@ -4,6 +4,7 @@ import { config } from './config/env.config.js';
 import { prisma } from './config/database.js';
 import { initializeSocket } from './config/socket.config.js';
 import { logger } from './middleware/logger.middleware.js';
+import { startItemsSyncJob } from './jobs/syncItems.job.js';
 
 const PORT = config.port;
 
@@ -21,6 +22,9 @@ const startServer = async () => {
     // Проверка подключения к БД
     await prisma.$connect();
     logger.info('Подключение к базе данных установлено');
+
+    // Запуск cron job для синхронизации скинов
+    startItemsSyncJob();
 
     // Запуск сервера
     httpServer.listen(PORT, () => {
