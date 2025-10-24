@@ -5,6 +5,6 @@ const router = Router();
 
 // Публичные роуты (без авторизации)
 router.get('/', categoryController.getActiveCategories);
-router.get('/:id', categoryController.getCategoryByIdPublic as RequestHandler);
+router.get('/:slug', categoryController.getCategoryBySlugPublic as RequestHandler);
 
 export default router;

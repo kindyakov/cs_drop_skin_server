@@ -1,15 +1,21 @@
 import { PrismaClient } from '@prisma/client';
-import { ICase, ICaseWithItems } from '../types/index.js';
+import { ICase, ICaseWithItems, ICasePublic } from '../types/index.js';
 import { NotFoundError } from '../utils/index.js';
 import { logger } from '../middleware/logger.middleware.js';
 
 const prisma = new PrismaClient();
 
-export const getAllActiveCases = async (): Promise<ICase[]> => {
+export const getAllActiveCases = async (): Promise<ICasePublic[]> => {
   try {
     const cases = await prisma.case.findMany({
       where: { isActive: true },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        imageUrl: true,
+        price: true,
         category: {
           select: {
             id: true,
@@ -18,7 +24,7 @@ export const getAllActiveCases = async (): Promise<ICase[]> => {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { name: 'asc' },
     });
 
     // Конвертируем Decimal в number для price

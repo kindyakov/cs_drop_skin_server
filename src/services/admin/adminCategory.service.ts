@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import type {
   ICategory,
-  ICategoryWithCount,
   ICategoryWithCases,
   ICreateCategoryInput,
   IUpdateCategoryInput,
@@ -14,20 +13,38 @@ import { logger } from '@middleware/logger.middleware';
 const prisma = new PrismaClient();
 
 /**
- * Получить все категории
+ * Получить все категории с полными данными кейсов
  */
-export const getAllCategories = async (): Promise<ICategoryWithCount[]> => {
+export const getAllCategories = async (): Promise<ICategoryWithCases[]> => {
   try {
     const categories = await prisma.category.findMany({
       include: {
-        _count: {
-          select: { cases: true },
+        cases: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            imageUrl: true,
+            price: true,
+            isActive: true,
+          },
+          orderBy: { createdAt: 'desc' },
         },
       },
       orderBy: { order: 'asc' },
     });
 
-    return categories;
+    // Конвертируем Decimal в number для price
+    const formattedCategories = categories.map((category) => ({
+      ...category,
+      cases: category.cases.map((caseData) => ({
+        ...caseData,
+        price: caseData.price.toNumber(),
+      })),
+    }));
+
+    logger.info('Получен список всех категорий с кейсами', { count: formattedCategories.length });
+    return formattedCategories;
   } catch (error) {
     logger.error('Ошибка получения категорий', { error });
     throw error;
@@ -70,6 +87,46 @@ export const getCategoryById = async (id: string): Promise<ICategoryWithCases> =
     };
   } catch (error) {
     logger.error('Ошибка получения категории', { error, id });
+    throw error;
+  }
+};
+
+/**
+ * Получить категорию по SLUG с кейсами
+ */
+export const getCategoryBySlug = async (slug: string): Promise<ICategoryWithCases> => {
+  try {
+    const category = await prisma.category.findUnique({
+      where: { slug },
+      include: {
+        cases: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            imageUrl: true,
+            price: true,
+            isActive: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+
+    if (!category) {
+      throw new NotFoundError('Категория не найдена');
+    }
+
+    // Конвертируем Decimal в number для price
+    return {
+      ...category,
+      cases: category.cases.map((caseData) => ({
+        ...caseData,
+        price: caseData.price.toNumber(),
+      })),
+    };
+  } catch (error) {
+    logger.error('Ошибка получения категории', { error, slug });
     throw error;
   }
 };
