@@ -52,7 +52,7 @@ export const getCaseBySlug = async (slug: string): Promise<ICaseWithItems> => {
         },
         items: {
           include: { item: true },
-          orderBy: { chancePercent: 'desc' },
+          orderBy: { chancePercent: 'asc' },
         },
       },
     });
