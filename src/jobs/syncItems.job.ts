@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { logger } from '@middleware/logger.middleware.js';
+import { logger } from '../middleware/logger.middleware.js';
 import { csApiService } from '../services/csApi.service.js';
 import { skinsCache } from '../utils/skinsCache.util.js';
 

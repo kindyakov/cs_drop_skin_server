@@ -7,9 +7,9 @@ import type {
 import type { ICase, ICaseWithItems } from '../../types/case.types.js';
 import type { ItemRarity } from '../../types/constants.js';
 import { ItemRarities } from '../../types/constants.js';
-import { slugify } from '@utils/helpers.util.js';
-import { NotFoundError, ValidationError } from '@utils/errors.util.js';
-import { logger } from '@middleware/logger.middleware.js';
+import { slugify } from '../../utils/helpers.util.js';
+import { NotFoundError, ValidationError } from '../../utils/errors.util.js';
+import { logger } from '../../middleware/logger.middleware.js';
 import { skinsCache } from '../../utils/skinsCache.util.js';
 
 const prisma = new PrismaClient();

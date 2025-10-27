@@ -125,6 +125,9 @@ model Item {
   id          String     @id @default(cuid())
   marketHashName String  @unique
   displayName    String
+  weaponName  String?
+  skinName    String?
+  quality     String?
   imageUrl    String
   price       Decimal    @db.Decimal(10, 2)
   rarity      ItemRarity

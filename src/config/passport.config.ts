@@ -3,7 +3,7 @@ import { Strategy as SteamStrategy } from 'passport-steam';
 import { Strategy as VKontakteStrategy } from 'passport-vkontakte';
 import { PrismaClient } from '@prisma/client';
 import { config } from './env.config.js';
-import logger from '@middleware/logger.middleware.js';
+import logger from '../middleware/logger.middleware.js';
 
 const prisma = new PrismaClient();
 
@@ -11,7 +11,7 @@ passport.use(
   new SteamStrategy(
     {
       returnURL: config.steam.returnUrl,
-      realm: `http://localhost:${config.port}`,
+      realm: `http://localhost:${config.port}`, // https://permanently-jaunty-murrelet.cloudpub.ru/
       apiKey: config.steam.apiKey,
     },
     async (identifier, profile, done) => {
@@ -27,7 +27,7 @@ passport.use(
         });
 
         if (user) {
-          logger.info(`Existing user found: ${user.username} (${user.id})`);
+          logger.info(`Existing user found: ${user.username} (id: ${user.id})`);
           return done(null, { userId: user.id, role: user.role });
         }
 
@@ -42,7 +42,7 @@ passport.use(
           },
         });
 
-        logger.info(`New user created: ${user.username} (${user.id})`);
+        logger.info(`New user created: ${user.username} (id: ${user.id})`);
         return done(null, { userId: user.id, role: user.role });
       } catch (error) {
         logger.error('Steam OAuth error:', error);

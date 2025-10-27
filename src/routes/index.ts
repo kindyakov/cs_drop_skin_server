@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import authRoutes from './auth.routes';
-import caseRoutes from './case.routes';
-import caseOpeningRoutes from './caseOpening.routes';
-import userRoutes from './user.routes';
-import paymentRoutes from './payment.routes';
-import categoryRoutes from './category.routes';
-import adminRoutes from './admin/index';
+import authRoutes from './auth.routes.js';
+import caseRoutes from './case.routes.js';
+import caseOpeningRoutes from './caseOpening.routes.js';
+import userRoutes from './user.routes.js';
+import paymentRoutes from './payment.routes.js';
+import categoryRoutes from './category.routes.js';
+import adminRoutes from './admin/index.js';
 
 // Основной роутер приложения
 const router = Router();

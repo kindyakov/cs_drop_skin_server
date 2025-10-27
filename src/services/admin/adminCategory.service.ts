@@ -6,9 +6,9 @@ import type {
   IUpdateCategoryInput,
   IAssignCasesToCategoryInput,
 } from '../../types/category.types';
-import { slugify } from '@utils/helpers.util';
-import { NotFoundError, ValidationError } from '@utils/errors.util';
-import { logger } from '@middleware/logger.middleware';
+import { slugify } from '../../utils/helpers.util.js';
+import { NotFoundError, ValidationError } from '../../utils/errors.util.js';
+import { logger } from '../../middleware/logger.middleware.js';
 
 const prisma = new PrismaClient();
 

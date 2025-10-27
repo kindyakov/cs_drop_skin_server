@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { AuthenticatedRequest } from '@middleware/auth.middleware.js';
-import * as paymentService from '@services/payment.service.js';
-import { successResponse } from '@utils/index.js';
+import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
+import * as paymentService from '../services/payment.service.js';
+import { successResponse } from '../utils/index.js';
 import type { IYooKassaWebhook } from '../types/payment.types.js';
-import { config } from '@config/env.config.js';
+import { config } from '../config/env.config.js';
 
 const prisma = new PrismaClient();
 

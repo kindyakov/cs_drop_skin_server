@@ -6,6 +6,9 @@ export interface IItem {
   marketHashName: string;
   displayName: string;
   imageUrl: string;
+  weaponName: string;
+  skinName: string;
+  quality: string;
   price: number; // в копейках
   rarity: ItemRarity;
   createdAt: Date;
