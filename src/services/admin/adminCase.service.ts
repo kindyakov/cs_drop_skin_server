@@ -325,6 +325,9 @@ export const addItemsToCase = async (
             data: {
               marketHashName: cachedSkin.market_hash_name,
               displayName: cachedSkin.name,
+              weaponName: cachedSkin.weapon.name,
+              skinName: cachedSkin.pattern.name,
+              quality: cachedSkin.wear.name,
               imageUrl: cachedSkin.image,
               price: priceResult.price!,
               rarity: mapRarityIdToEnum(cachedSkin.rarity.id),
@@ -335,6 +338,9 @@ export const addItemsToCase = async (
             itemId: item.id,
             marketHashName: item.marketHashName,
             displayName: item.displayName,
+            weaponName: item.weaponName,
+            skinName: item.skinName,
+            quality: item.quality,
             price: item.price,
             rarity: item.rarity,
           });

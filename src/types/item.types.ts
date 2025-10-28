@@ -6,9 +6,9 @@ export interface IItem {
   marketHashName: string;
   displayName: string;
   imageUrl: string;
-  weaponName: string;
-  skinName: string;
-  quality: string;
+  weaponName?: string | null; // Название оружия (AK-47, AWP и т.д.)
+  skinName?: string | null; // Название скина
+  quality?: string | null; // Качество (Поношенное, Немного поношенное и т.д.)
   price: number; // в копейках
   rarity: ItemRarity;
   createdAt: Date;

@@ -24,6 +24,10 @@ export interface CSApiSkin {
   };
   min_float: number;
   max_float: number;
+  wear: {
+    id: string;
+    name: string;
+  };
   rarity: {
     id: string;
     name: string;
@@ -31,12 +35,8 @@ export interface CSApiSkin {
   };
   stattrak: boolean;
   souvenir: boolean;
-  paint_index: number;
-  wears: Array<{
-    id: string;
-    name: string;
-  }>;
-  market_hash_name: string | null;
+  paint_index: string;
+  market_hash_name: string;
   image: string;
 }
 
