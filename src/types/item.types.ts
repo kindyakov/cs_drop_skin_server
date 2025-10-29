@@ -8,6 +8,7 @@ export interface IItem {
   imageUrl: string;
   weaponName?: string | null; // Название оружия (AK-47, AWP и т.д.)
   skinName?: string | null; // Название скина
+  categoryName?: string | null; // Название категории (винтовка, пистолет и т.д.)
   quality?: string | null; // Качество (Поношенное, Немного поношенное и т.д.)
   price: number; // в копейках
   rarity: ItemRarity;

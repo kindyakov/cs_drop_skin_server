@@ -327,6 +327,7 @@ export const addItemsToCase = async (
               displayName: cachedSkin.name,
               weaponName: cachedSkin.weapon.name,
               skinName: cachedSkin.pattern.name,
+              categoryName: cachedSkin.category.name,
               quality: cachedSkin.wear.name,
               imageUrl: cachedSkin.image,
               price: priceResult.price!,
@@ -334,16 +335,7 @@ export const addItemsToCase = async (
             },
           });
 
-          logger.info('Новый скин создан из кеша с полными данными', {
-            itemId: item.id,
-            marketHashName: item.marketHashName,
-            displayName: item.displayName,
-            weaponName: item.weaponName,
-            skinName: item.skinName,
-            quality: item.quality,
-            price: item.price,
-            rarity: item.rarity,
-          });
+          logger.info('Новый скин создан из кеша с полными данными', item);
         } catch (createError) {
           logger.error('Ошибка создания скина', {
             error: createError,

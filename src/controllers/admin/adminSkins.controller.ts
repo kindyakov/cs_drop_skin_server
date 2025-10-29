@@ -25,8 +25,6 @@ class AdminSkinsController {
     next: NextFunction
   ): Promise<Response | void> {
     try {
-      logger.debug('Начало обработки запроса на получение скинов', { query: req.query });
-
       // Валидация и преобразование query параметров
       const page = Math.max(1, parseInt(req.query.page as string) || 1);
       const limit = Math.min(500, Math.max(1, parseInt(req.query.limit as string) || 50));
@@ -71,15 +69,6 @@ class AdminSkinsController {
 
       // Вызов сервиса
       const result: FilteredSkinsResult = adminSkinsService.getFilteredSkins(filters);
-
-      // Логирование результата
-      logger.debug('Скины успешно отфильтрованы', {
-        count: result.skins.length,
-        total: result.pagination.total,
-        page,
-        limit,
-        appliedFilters: filters,
-      });
 
       // Формирование ответа
       return successResponse(res, {

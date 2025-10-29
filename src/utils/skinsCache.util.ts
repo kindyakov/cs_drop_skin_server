@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { logger } from '../middleware/logger.middleware.js';
+import { config } from '@/config/env.config.js';
 
 /**
  * Типы для skins-cache.json
@@ -78,7 +79,7 @@ class SkinsCacheIndex {
   constructor() {
     // process.cwd() возвращает папку server (так как npm run dev выполняется из server/)
     // Поэтому нам нужен только path relative от server/
-    this.cacheFilePath = path.join(process.cwd(), 'data', 'skins-cache.json');
+    this.cacheFilePath = path.join(process.cwd(), 'data', config.cacheFile);
   }
 
   /**

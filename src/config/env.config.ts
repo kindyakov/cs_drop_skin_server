@@ -105,6 +105,16 @@ const envSchema = z.object({
       errorMap: () => ({ message: 'LOG_LEVEL must be one of: error, warn, info, debug' }),
     })
     .default('info'),
+
+  NAME_CACHE_FILE: z
+    .string({
+      required_error: 'NAME_CACHE_FILE is required for file cache with skins',
+    })
+    .min(6, 'Filename must be at least 6 characters long')
+    .refine((val) => val.endsWith('.json'), {
+      message: 'Cache file must have .json extension',
+    })
+    .default('skins-cache.json'),
 });
 
 // Validate and parse environment variables
@@ -174,6 +184,8 @@ export const config = {
   logging: {
     level: validatedEnv.LOG_LEVEL,
   },
+
+  cacheFile: validatedEnv.NAME_CACHE_FILE,
 
   // Environment check helpers
   isDevelopment: validatedEnv.NODE_ENV === 'development',
