@@ -42,7 +42,7 @@ export const startItemsSyncJob = () => {
       logger.info('✅ Scheduled synchronization completed', {
         totalSkins: syncResult.totalSkins,
         duration: syncResult.duration,
-        skinsAdded: syncResult.totalSkins - cacheInfoBefore.totalSkins
+        skinsAdded: syncResult.totalSkins - cacheInfoBefore.totalSkins,
       });
     } catch (error) {
       logger.error('❌ Synchronization failed', { error });
@@ -74,15 +74,17 @@ export const startItemsSyncJob = () => {
 ### **Логирование**
 
 **Успешная синхронизация:**
+
 ```
 19:47:21 info: 🔄 Starting scheduled CSGO skins synchronization
 19:47:21 info: Cache state before sync { cacheExists: true, totalSkins: 15339 }
-19:47:25 info: Successfully fetched skins from API { totalSkins: 15339 }
+19:47:25 info: Успешно извлеченные скины из API { totalSkins: 15339 }
 19:47:25 info: ✅ Scheduled synchronization completed { totalSkins: 15339, duration: "4272ms" }
 19:47:25 info: Cache state after sync { cacheExists: true, totalSkins: 15339 }
 ```
 
 **Ошибка синхронизации:**
+
 ```
 19:47:21 info: 🔄 Starting scheduled CSGO skins synchronization
 19:47:30 error: ❌ Scheduled synchronization failed { error: "API request timeout after 30000ms" }
@@ -92,13 +94,14 @@ export const startItemsSyncJob = () => {
 
 ```typescript
 interface SyncResult {
-  lastSync: string;      // ISO 8601 timestamp
-  totalSkins: number;    // Количество скинов в кэше
-  duration: number;      // Время выполнения в мс
+  lastSync: string; // ISO 8601 timestamp
+  totalSkins: number; // Количество скинов в кэше
+  duration: number; // Время выполнения в мс
 }
 ```
 
 **Пример:**
+
 ```typescript
 {
   lastSync: "2025-10-23T16:47:25.414Z",
@@ -110,6 +113,7 @@ interface SyncResult {
 ### **Ручной запуск**
 
 #### CLI команда:
+
 ```bash
 # Синхронизация
 npm run sync-skins
@@ -122,6 +126,7 @@ npx tsx sync-skins.ts
 ```
 
 #### Программный вызов:
+
 ```typescript
 import { manualSyncItems } from './jobs/syncItems.job.js';
 
@@ -154,7 +159,9 @@ await manualSyncItems();
   {
     "lastSync": "2025-10-23T16:47:25.414Z",
     "totalSkins": 15339,
-    "skins": [ /* массив скинов */ ]
+    "skins": [
+      /* массив скинов */
+    ]
   }
   ```
 - **Gitignore:** Кэш не коммитится в репозиторий

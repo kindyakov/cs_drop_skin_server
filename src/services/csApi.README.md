@@ -29,11 +29,12 @@ console.log(`ℹ️ Последняя синхронизация: ${info.lastSy
 Загружает данные из API и сохраняет в локальный кэш.
 
 **Возвращает:**
+
 ```typescript
 {
-  lastSync: string;      // ISO 8601 timestamp
-  totalSkins: number;    // Количество скинов
-  duration: number;      // Время выполнения в мс
+  lastSync: string; // ISO 8601 timestamp
+  totalSkins: number; // Количество скинов
+  duration: number; // Время выполнения в мс
 }
 ```
 
@@ -48,11 +49,12 @@ console.log(`ℹ️ Последняя синхронизация: ${info.lastSy
 Возвращает метаданные о состоянии кэша.
 
 **Возвращает:**
+
 ```typescript
 {
-  lastSync: string | null;  // Время последней синхронизации
-  totalSkins: number;        // Количество скинов
-  cacheExists: boolean;      // Существует ли кэш
+  lastSync: string | null; // Время последней синхронизации
+  totalSkins: number; // Количество скинов
+  cacheExists: boolean; // Существует ли кэш
 }
 ```
 
@@ -61,35 +63,35 @@ console.log(`ℹ️ Последняя синхронизация: ${info.lastSy
 ```typescript
 interface CSApiSkin {
   id: string;
-  name: string;                    // "★ Обмотки рук | Пиксельный камуфляж «Хвоя»"
+  name: string; // "★ Обмотки рук | Пиксельный камуфляж «Хвоя»"
   description: string;
   weapon: {
-    id: string;                    // "leather_handwraps"
-    name: string;                  // "Обмотки рук"
+    id: string; // "leather_handwraps"
+    name: string; // "Обмотки рук"
   };
   category: {
     id: string;
-    name: string;                  // "Перчатки"
+    name: string; // "Перчатки"
   };
   pattern: {
     id: string;
-    name: string;                  // "Пиксельный камуфляж «Хвоя»"
+    name: string; // "Пиксельный камуфляж «Хвоя»"
   };
-  min_float: number;               // 0.06
-  max_float: number;               // 0.8
+  min_float: number; // 0.06
+  max_float: number; // 0.8
   rarity: {
     id: string;
-    name: string;                  // "экстраординарного типа"
-    color: string;                 // "#eb4b4b"
+    name: string; // "экстраординарного типа"
+    color: string; // "#eb4b4b"
   };
   stattrak: boolean;
   souvenir: boolean;
   paint_index: string;
   market_hash_name: string | null; // "★ Hand Wraps | Spruce DDPAT (Factory New)"
-  image: string;                   // URL изображения
+  image: string; // URL изображения
   wears: Array<{
     id: string;
-    name: string;                  // "Прямо с завода", "Немного поношенное"
+    name: string; // "Прямо с завода", "Немного поношенное"
   }>;
 }
 ```
@@ -102,16 +104,16 @@ interface CSApiSkin {
 const skins = await csApiService.getSkinsFromCache();
 
 // Поиск по оружию
-const ak47Skins = skins.filter(skin => skin.weapon.id === 'ak47');
+const ak47Skins = skins.filter((skin) => skin.weapon.id === 'ak47');
 
 // Поиск по редкости
-const covertSkins = skins.filter(skin => skin.rarity.id === 'rarity_ancient_weapon');
+const covertSkins = skins.filter((skin) => skin.rarity.id === 'rarity_ancient_weapon');
 
 // Поиск с StatTrak
-const stattrakSkins = skins.filter(skin => skin.stattrak === true);
+const stattrakSkins = skins.filter((skin) => skin.stattrak === true);
 
 // Поиск по названию паттерна
-const asiiSkins = skins.filter(skin => skin.pattern.name.includes('Asiimov'));
+const asiiSkins = skins.filter((skin) => skin.pattern.name.includes('Asiimov'));
 ```
 
 ### Проверка актуальности кэша
@@ -197,6 +199,7 @@ npx tsx test-csapi.ts
 ```
 
 Тест выполняет:
+
 1. Проверку состояния кэша
 2. Синхронизацию с API
 3. Чтение из кэша
@@ -207,9 +210,9 @@ npx tsx test-csapi.ts
 Сервис использует Winston logger для детального логирования:
 
 ```
-19:47:21 info: Starting skins cache synchronization
-19:47:25 info: Successfully fetched skins from API { totalSkins: 15339 }
-19:47:25 info: Cache synchronization completed successfully { duration: "4272ms" }
+19:47:21 info: Запуск синхронизации кэша скинов
+19:47:25 info: Успешно извлеченные скины из API { totalSkins: 15339 }
+19:47:25 info: Синхронизация кэша успешно завершена { duration: "4272ms" }
 ```
 
 ## API Reference

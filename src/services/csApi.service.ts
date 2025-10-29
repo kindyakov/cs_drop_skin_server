@@ -70,7 +70,8 @@ export interface CacheInfo {
 /**
  * URL API для получения данных скинов
  */
-const CSGO_API_URL = 'https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/ru/skins_not_grouped.json';
+const CSGO_API_URL =
+  'https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/ru/skins_not_grouped.json';
 
 /**
  * Путь к директории для хранения кэша
@@ -103,9 +104,9 @@ class CsApiService {
       const response = await axios.get<CSApiSkin[]>(CSGO_API_URL, {
         timeout: HTTP_TIMEOUT,
         headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'CS-Drop-Skin-Platform/1.0'
-        }
+          Accept: 'application/json',
+          'User-Agent': 'CS-Drop-Skin-Platform/1.0',
+        },
       });
 
       if (!Array.isArray(response.data)) {
@@ -119,13 +120,17 @@ class CsApiService {
           throw new Error(`API request timeout after ${HTTP_TIMEOUT}ms`);
         }
         if (error.response) {
-          throw new Error(`API request failed with status ${error.response.status}: ${error.response.statusText}`);
+          throw new Error(
+            `API request failed with status ${error.response.status}: ${error.response.statusText}`
+          );
         }
         if (error.request) {
           throw new Error('API request failed: No response received');
         }
       }
-      throw new Error(`Failed to fetch skins from API: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to fetch skins from API: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -155,23 +160,23 @@ class CsApiService {
   public async syncSkinsCache(): Promise<SyncResult> {
     const startTime = Date.now();
 
-    logger.info('Starting skins cache synchronization', {
-      source: CSGO_API_URL
+    logger.info('Запуск синхронизации кэша скинов', {
+      source: CSGO_API_URL,
     });
 
     try {
       // Получаем данные из API
       const skins = await this.fetchSkinsFromAPI();
 
-      logger.info('Successfully fetched skins from API', {
-        totalSkins: skins.length
+      logger.info('Успешно извлеченные скины из API', {
+        totalSkins: skins.length,
       });
 
       // Подготавливаем данные для кэша
       const cacheData: SkinsCacheData = {
         lastSync: new Date().toISOString(),
         totalSkins: skins.length,
-        skins
+        skins,
       };
 
       // Создаем директорию, если её нет
@@ -180,32 +185,28 @@ class CsApiService {
       // Атомарная запись через временный файл
       const tempFilePath = `${CACHE_FILE_PATH}.tmp`;
 
-      await fs.writeFile(
-        tempFilePath,
-        JSON.stringify(cacheData, null, 2),
-        'utf-8'
-      );
+      await fs.writeFile(tempFilePath, JSON.stringify(cacheData, null, 2), 'utf-8');
 
       // Переименовываем временный файл в финальный (атомарная операция)
       await fs.rename(tempFilePath, CACHE_FILE_PATH);
 
       const duration = Date.now() - startTime;
 
-      logger.info('Cache synchronization completed successfully', {
+      logger.info('Синхронизация кэша успешно завершена', {
         totalSkins: skins.length,
         duration: `${duration}ms`,
-        cachePath: CACHE_FILE_PATH
+        cachePath: CACHE_FILE_PATH,
       });
 
       return {
         lastSync: cacheData.lastSync,
         totalSkins: cacheData.totalSkins,
-        duration
+        duration,
       };
     } catch (error) {
       logger.error('Cache synchronization failed', {
         error: error instanceof Error ? error.message : 'Unknown error',
-        duration: `${Date.now() - startTime}ms`
+        duration: `${Date.now() - startTime}ms`,
       });
       throw error;
     }
@@ -236,7 +237,7 @@ class CsApiService {
 
       logger.error('Failed to read cache file', {
         error: error instanceof Error ? error.message : 'Unknown error',
-        path: CACHE_FILE_PATH
+        path: CACHE_FILE_PATH,
       });
 
       return [];
@@ -257,25 +258,25 @@ class CsApiService {
       return {
         lastSync: cacheData.lastSync,
         totalSkins: cacheData.totalSkins,
-        cacheExists: true
+        cacheExists: true,
       };
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
         return {
           lastSync: null,
           totalSkins: 0,
-          cacheExists: false
+          cacheExists: false,
         };
       }
 
       logger.error('Failed to get cache info', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       return {
         lastSync: null,
         totalSkins: 0,
-        cacheExists: false
+        cacheExists: false,
       };
     }
   }

@@ -43,7 +43,6 @@ export const getAllCategories = async (): Promise<ICategoryWithCases[]> => {
       })),
     }));
 
-    logger.info('Получен список всех категорий с кейсами', { count: formattedCategories.length });
     return formattedCategories;
   } catch (error) {
     logger.error('Ошибка получения категорий', { error });

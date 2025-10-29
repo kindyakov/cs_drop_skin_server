@@ -1330,6 +1330,273 @@ Response:
 
 ---
 
+## 🔍 Admin Skins Controller (`admin/adminSkins.controller.ts`)
+
+### Функции работы со скинами (Admin)
+
+#### **Admin Skins Operations**
+- **`getFilteredSkins`** - Получение отфильтрованного списка скинов с пагинацией
+  - Извлекает и валидирует query параметры (search, page, limit, sortBy и др.)
+  - Вызывает `adminSkinsService.getFilteredSkins(filters)`
+  - Поддерживает сложную фильтрацию по всем полям скина
+  - Возвращает скины с пагинацией и информацией о применённых фильтрах
+  - Использует `successResponse(res, { skins, pagination, appliedFilters })`
+
+- **`getSkinById`** - Получение одного скина по ID
+  - Извлекает `id` из `req.params`
+  - Вызывает `adminSkinsService.getSkinById(id)`
+  - Возвращает 404 если скин не найден
+  - Использует `successResponse(res, { skin })`
+
+- **`getAvailableFilters`** - Получение списков доступных значений для фильтров
+  - Вызывает `adminSkinsService.getAvailableFilters()`
+  - Возвращает уникальные weapons, categories, rarities, patterns, wears
+  - Используется для построения фильтров в UI админки
+  - Использует `successResponse(res, filters)`
+
+- **`getSkinsStats`** - Получение статистики по скинам в кэше
+  - Вызывает `adminSkinsService.getSkinsStats()`
+  - Возвращает общую статистику (totalSkins, stattrakCount, souvenirCount и др.)
+  - Используется для информационной панели
+  - Использует `successResponse(res, stats)`
+
+- **`syncSkinsFromApi`** - Запуск ручной синхронизации скинов из API
+  - Вызывает `adminSkinsService.syncSkinsFromApi()`
+  - Требует JWT + admin + rate limiting (5 req / 15 min)
+  - Пересинхронизирует данные из CSGO-API
+  - Перезагружает кэш скинов в памяти
+  - Использует `successResponse(res, result, 'Skins synchronized successfully')`
+
+### 🛠 Техническая реализация
+
+#### **Dependencies:**
+```typescript
+import { Request, Response, NextFunction } from 'express';
+import { adminSkinsService } from '../../services/admin/adminSkins.service.js';
+import { AppError } from '../../utils/errors.util.js';
+import { successResponse } from '../../utils/response.util.js';
+import { logger } from '../../middleware/logger.middleware.js';
+import type { 
+  SkinFilters, 
+  FilteredSkinsResult, 
+  AvailableFilters, 
+  SkinsStats 
+} from '../../services/admin/adminSkins.service.js';
+```
+
+#### **Route Protection:**
+- **Все роуты требуют:**
+  - `authenticate` - JWT аутентификация
+  - `requireAdmin` - роль ADMIN
+- **POST /sync дополнительно:**
+  - `syncRateLimiter` - 5 запросов в 15 минут (тяжёлая операция)
+
+#### **Query Parameters Validation:**
+- `page`: min 1, default 1
+- `limit`: min 1, max 500, default 50  
+- `sortBy`: 'name' | 'rarity' | 'weapon' | 'category', default 'name'
+- `sortOrder`: 'asc' | 'desc', default 'asc'
+- `stattrak/souvenir`: преобразует строку 'true'|'false' в boolean
+
+### 📍 Подключенные роуты (из `admin/adminSkins.routes.ts`)
+```typescript
+// Все роуты с префиксом /api/v1/admin/skins
+router.use(authenticate, requireAdmin);
+
+// GET /api/v1/admin/skins - фильтрация и пагинация
+router.get('/', adminSkinsController.getFilteredSkins);
+
+// GET /api/v1/admin/skins/stats - статистика
+router.get('/stats', adminSkinsController.getSkinsStats);
+
+// GET /api/v1/admin/skins/filters - доступные фильтры
+router.get('/filters', adminSkinsController.getAvailableFilters);
+
+// GET /api/v1/admin/skins/:id - детали скина
+router.get('/:id', adminSkinsController.getSkinById);
+
+// POST /api/v1/admin/skins/sync - синхронизация с rate limiting
+router.post('/sync', syncRateLimiter, adminSkinsController.syncSkinsFromApi);
+```
+
+### 🌐 API Endpoint Examples
+
+#### **Фильтрация скинов:**
+```bash
+GET /api/v1/admin/skins?search=ak&page=1&limit=20&sortBy=name&sortOrder=asc&weaponId=weapon1&stattrak=false
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+
+Response:
+{
+  "success": true,
+  "data": {
+    "skins": [
+      {
+        "id": "skin1",
+        "name": "AK-47 | Redline",
+        "market_hash_name": "AK-47 | Redline (Field-Tested)",
+        "weapon": { "id": "weapon1", "name": "AK-47" },
+        "rarity": { "id": "rarity1", "name": "Classified", "color": "#eb4b4b" },
+        "category": { "id": "cat1", "name": "Rifle" },
+        "pattern": { "id": "pat1", "name": "Redline" },
+        "wear": { "id": "wear1", "name": "Field-Tested" },
+        "stattrak": false,
+        "souvenir": false,
+        "min_float": 0.06,
+        "max_float": 0.8,
+        "image": "/images/skins/ak47_redline.png"
+      }
+    ],
+    "pagination": {
+      "total": 156,
+      "page": 1,
+      "limit": 20,
+      "totalPages": 8
+    },
+    "appliedFilters": {
+      "search": "ak",
+      "weaponId": "weapon1",
+      "page": 1,
+      "limit": 20,
+      "sortBy": "name",
+      "sortOrder": "asc",
+      "stattrak": false
+    }
+  }
+}
+```
+
+#### **Получение скина по ID:**
+```bash
+GET /api/v1/admin/skins/skin1
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+
+Response:
+{
+  "success": true,
+  "data": {
+    "skin": {
+      "id": "skin1",
+      "name": "AK-47 | Redline",
+      "market_hash_name": "AK-47 | Redline (Field-Tested)",
+      "weapon": { "id": "weapon1", "name": "AK-47" },
+      "rarity": { "id": "rarity1", "name": "Classified", "color": "#eb4b4b" },
+      "category": { "id": "cat1", "name": "Rifle" },
+      "pattern": { "id": "pat1", "name": "Redline" },
+      "wear": { "id": "wear1", "name": "Field-Tested" },
+      "stattrak": false,
+      "souvenir": false,
+      "min_float": 0.06,
+      "max_float": 0.8,
+      "paint_index": "101",
+      "team": { "id": "team1", "name": "Counter-Terrorists" },
+      "style": { "id": 1, "name": "Normal", "url": null },
+      "legacy_model": false,
+      "image": "/images/skins/ak47_redline.png",
+      "original": {
+        "name": "AK-47 Redline",
+        "image_inventory": "econ/weapon_base_weapons/base_weapon_knuckles"
+      }
+    }
+  }
+}
+```
+
+#### **Доступные фильтры:**
+```bash
+GET /api/v1/admin/skins/filters
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+
+Response:
+{
+  "success": true,
+  "data": {
+    "weapons": [
+      { "id": "weapon1", "name": "AK-47" },
+      { "id": "weapon2", "name": "AWP" }
+    ],
+    "categories": [
+      { "id": "cat1", "name": "Rifle" },
+      { "id": "cat2", "name": "Sniper Rifle" }
+    ],
+    "rarities": [
+      { "id": "rarity1", "name": "Consumer", "color": "#b0c3d9" },
+      { "id": "rarity2", "name": "Classified", "color": "#eb4b4b" }
+    ],
+    "patterns": [
+      { "id": "pat1", "name": "Redline" },
+      { "id": "pat2", "name": "Dragon Lore" }
+    ],
+    "wears": [
+      { "id": "wear1", "name": "Factory New" },
+      { "id": "wear2", "name": "Minimal Wear" }
+    ]
+  }
+}
+```
+
+#### **Статистика скинов:**
+```bash
+GET /api/v1/admin/skins/stats
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+
+Response:
+{
+  "success": true,
+  "data": {
+    "totalSkins": 15339,
+    "totalWeapons": 83,
+    "totalCategories": 15,
+    "totalRarities": 8,
+    "totalPatterns": 1250,
+    "totalWears": 5,
+    "stattrakCount": 3842,
+    "souvenirCount": 891
+  }
+}
+```
+
+#### **Синхронизация:**
+```bash
+POST /api/v1/admin/skins/sync
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+
+Response:
+{
+  "success": true,
+  "data": {
+    "lastSync": "2025-10-28T21:00:00.000Z",
+    "totalSkins": 15339,
+    "duration": 4250
+  },
+  "message": "Skins synchronized successfully"
+}
+```
+
+### ⚠️ Особенности реализации
+
+#### **Производительность:**
+- **Кэш в памяти** - skinsCache.util.ts с индексами
+- **Мгновенные запросы** - нет обращений к БД при фильтрации
+- **Интеллектуальное использование индексов** - поиск по rarity/weapon через map
+
+#### **Rate Limiting:**
+- **Агрессивные лимиты** на синхронизацию (5 раз/15 минут)
+- **Тяжёлая операция** - ~4-5 секунд на выполнение
+- **Защита от спама** - не может быть использована DoS
+
+#### **Детальное логирование:**
+- **Debug уровень** - отладочная информация
+- **Info уровень** - синхронизация
+- **Error уровень** - все ошибки с контекстом
+
+#### **Валидация и безопасность:**
+- **Проверка типов** строковых параметров
+- **Защита от инъекций** - нет прямых SQL запросов
+- **AppError с корректными status codes**
+
+---
+
 ## 🚀 Future Controllers (Планируемые)
 
 ### **AdminPanelController** - админ функции

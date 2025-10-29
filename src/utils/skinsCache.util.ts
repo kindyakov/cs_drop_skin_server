@@ -92,7 +92,7 @@ class SkinsCacheIndex {
         logger.error('Файл кеша скинов не найден', {
           path: this.cacheFilePath,
           cwd: process.cwd(),
-          fileExists: false
+          fileExists: false,
         });
         return;
       }
@@ -104,7 +104,7 @@ class SkinsCacheIndex {
       if (!this.skins || this.skins.length === 0) {
         logger.warn('Кеш скинов пуст или не содержит данных', {
           path: this.cacheFilePath,
-          skinsCount: this.skins?.length || 0
+          skinsCount: this.skins?.length || 0,
         });
         return;
       }
@@ -122,7 +122,7 @@ class SkinsCacheIndex {
     } catch (error) {
       logger.error('❌ Ошибка при загрузке кеша скинов', {
         error: error instanceof Error ? error.message : String(error),
-        path: this.cacheFilePath
+        path: this.cacheFilePath,
       });
       throw error;
     }
@@ -179,7 +179,7 @@ class SkinsCacheIndex {
         searching: hashName,
         totalSkinsInCache: this.skins.length,
         indexSize: this.indexByHashName.size,
-        firstFewHashNames: Array.from(this.indexByHashName.keys()).slice(0, 3)
+        firstFewHashNames: Array.from(this.indexByHashName.keys()).slice(0, 3),
       });
     }
 
@@ -235,8 +235,7 @@ class SkinsCacheIndex {
       const query = filters.query.toLowerCase();
       results = results.filter(
         (s) =>
-          s.name.toLowerCase().includes(query) ||
-          s.market_hash_name.toLowerCase().includes(query)
+          s.name.toLowerCase().includes(query) || s.market_hash_name.toLowerCase().includes(query)
       );
     }
 
