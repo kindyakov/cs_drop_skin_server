@@ -57,6 +57,9 @@ export interface IUserPublicProfile {
     id: string;
     displayName: string;
     imageUrl: string;
+    weaponName: string | null;
+    skinName: string | null;
+    categoryName: string | null;
     price: number;
     rarity: string;
   } | null;
