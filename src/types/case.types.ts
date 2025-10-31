@@ -56,3 +56,17 @@ export interface ICasePublic {
     slug: string;
   } | null;
 }
+
+export interface IFiltersCases {
+  from: number;
+  to: number;
+}
+
+/**
+ * Параметры фильтрации кейсов
+ */
+export interface ICaseFilters {
+  search?: string; // Поиск по названию кейса
+  from?: number; // Минимальная цена
+  to?: number; // Максимальная цена
+}

@@ -1,14 +1,40 @@
-import { PrismaClient } from '@prisma/client';
-import { ICase, ICaseWithItems, ICasePublic } from '../types/index.js';
+import { PrismaClient, Prisma } from '@prisma/client';
+import { ICase, ICaseWithItems, ICasePublic, IFiltersCases, ICaseFilters } from '../types/index.js';
 import { NotFoundError } from '../utils/index.js';
 import { logger } from '../middleware/logger.middleware.js';
 
 const prisma = new PrismaClient();
 
-export const getAllActiveCases = async (): Promise<ICasePublic[]> => {
+export const getAllActiveCases = async (filters?: ICaseFilters): Promise<ICasePublic[]> => {
   try {
+    // Строим условия фильтрации
+    const where: Prisma.CaseWhereInput = {
+      isActive: true,
+    };
+
+    // Фильтрация по названию (поиск)
+    if (filters?.search) {
+      where.name = {
+        contains: filters.search,
+        mode: 'insensitive', // Регистронезависимый поиск
+      };
+    }
+
+    // Фильтрация по диапазону цен
+    if (filters?.from !== undefined || filters?.to !== undefined) {
+      where.price = {};
+
+      if (filters.from !== undefined) {
+        where.price.gte = filters.from;
+      }
+
+      if (filters.to !== undefined) {
+        where.price.lte = filters.to;
+      }
+    }
+
     const cases = await prisma.case.findMany({
-      where: { isActive: true },
+      where,
       select: {
         id: true,
         name: true,
@@ -33,7 +59,29 @@ export const getAllActiveCases = async (): Promise<ICasePublic[]> => {
       price: caseData.price.toNumber(),
     }));
   } catch (error) {
-    logger.error('Ошибка получения кейсов', { error });
+    logger.error('Ошибка получения кейсов', { error, filters });
+    throw error;
+  }
+};
+
+export const getFilteredCases = async (): Promise<IFiltersCases> => {
+  try {
+    const result = await prisma.case.aggregate({
+      where: { isActive: true },
+      _min: {
+        price: true,
+      },
+      _max: {
+        price: true,
+      },
+    });
+
+    return {
+      from: result._min.price?.toNumber() ?? 0,
+      to: result._max.price?.toNumber() ?? 0,
+    };
+  } catch (error) {
+    logger.error('Ошибка получения фильтров для кейсов', { error });
     throw error;
   }
 };

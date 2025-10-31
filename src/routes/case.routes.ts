@@ -5,6 +5,7 @@ const router = Router();
 
 // Публичные роуты (без авторизации)
 router.get('/', caseController.getAllCases);
+router.get('/filters', caseController.getFilteredCases);
 router.get('/:slug', caseController.getCaseBySlug);
 
 export default router;
