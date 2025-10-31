@@ -2,7 +2,7 @@ import axios from 'axios';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { logger } from '../middleware/logger.middleware.js';
-import { config } from '@/config/env.config.js';
+import { config } from '../config/env.config.js';
 /**
  * Интерфейс для данных скина из CSGO-API
  */
