@@ -1,12 +1,23 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
+import cors from 'cors';
 
 import { config } from './config/env.config.js';
 import routes from './routes/index.js';
-import { securityMiddleware, corsMiddleware } from './middleware/security.middleware.js';
+import { securityMiddleware } from './middleware/security.middleware.js';
 import { morganMiddleware } from './middleware/logger.middleware.js';
 import { generalRateLimiter } from './middleware/rateLimiter.middleware.js';
 
 const app: Application = express();
+
+// ==============================================
+// CORS - САМОЕ ПЕРВОЕ!
+// ==============================================
+app.use(cors({
+  origin: '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+}));
 
 // ==============================================
 // BODY PARSING MIDDLEWARE
@@ -17,8 +28,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' })); // Парсит 
 // ==============================================
 // SECURITY & BASIC MIDDLEWARE
 // ==============================================
-// app.use(securityMiddleware); // Security headers через Helmet
-// app.use(corsMiddleware); // CORS configuration
+app.use(securityMiddleware); // Security headers через Helmet
 
 // Rate limiting для API endpoints
 app.use('/api/', generalRateLimiter);
