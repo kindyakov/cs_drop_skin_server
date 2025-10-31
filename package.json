@@ -8,13 +8,17 @@
     "dev": "nodemon --exec tsx src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+    "start:migrate": "npx prisma migrate deploy && npx prisma generate && node dist/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "sync-skins": "tsx sync-skins.ts",
-    "sync-skins:info": "tsx sync-skins.ts info"
+    "sync-skins:info": "tsx sync-skins.ts info",
+    "check-env": "node check-env.js",
+    "railway:deploy": "npm run build && railway up"
   },
   "keywords": [
     "csgo",

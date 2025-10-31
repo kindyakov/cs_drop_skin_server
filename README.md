@@ -31,28 +31,33 @@ server/
 ## ⚙️ Быстрый старт
 
 ### 1. Установка
+
 ```bash
 npm install
 ```
 
 ### 2. Настройка .env
+
 ```bash
 cp .env.example .env
 ```
 
 ### 3. База данных
+
 ```bash
 # PostgreSQL должен быть установлен
 # Создать базу данных: cs_cases
 ```
 
 ### 4. Миграции
+
 ```bash
 npm run prisma:generate
 npm run prisma:migrate
 ```
 
 ### 5. Запуск
+
 ```bash
 npm run dev    # Development
 npm start      # Production
@@ -61,11 +66,13 @@ npm start      # Production
 ## 🌐 API Эндпоинты
 
 ### **Базовый URL**
+
 ```
 http://localhost:5000/api/v1/
 ```
 
 ### **Authentication**
+
 ```
 GET  /api/v1/auth/steam          → OAuth через Steam
 GET  /api/v1/auth/steam/return   → Steam callback
@@ -75,6 +82,7 @@ GET  /api/v1/auth/me             → Профиль (JWT)
 ```
 
 ### **Health Check**
+
 ```
 GET  /health                     → Статус сервера
 ```
@@ -82,6 +90,7 @@ GET  /health                     → Статус сервера
 ## 🔐 OAuth Токен
 
 ### **Flow:**
+
 1. Client → `GET /api/v1/auth/steam`
 2. Steam → User авторизация
 3. Backend → JWT токен
@@ -89,10 +98,11 @@ GET  /health                     → Статус сервера
 5. Client → Save token + API calls
 
 ### **Использование:**
+
 ```javascript
 // Получить профиль
 fetch('/api/v1/auth/me', {
-  headers: { 'Authorization': `Bearer ${token}` }
+  headers: { Authorization: `Bearer ${token}` },
 });
 ```
 
@@ -121,10 +131,12 @@ FRONTEND_URL=http://localhost:3000
 ## 🔑 API Ключи
 
 ### **Steam OAuth**
+
 1. [Steam Web API Key](https://steamcommunity.com/dev/apikey)
 2. Добавить в `.env`
 
 ### **VK OAuth**
+
 1. [VK Application](https://vk.com/apps?act=manage)
 2. Настройки: Single-page app + Authorization Code Flow
 3. Добавить в `.env`
@@ -150,16 +162,16 @@ FRONTEND_URL=http://localhost:3000
 ## 📋 Скрипты
 
 ```bash
-npm run dev              # Development с hot-reload
-npm run build            # TypeScript компиляция
-npm start                # Production сервер
-npm run prisma:generate  # Генерация Prisma Client
-npm run prisma:migrate    # Применение миграций
-npm run prisma:studio    # Prisma Studio GUI
-npm run lint             # ESLint проверка
-npm run format           # Prettier форматирование
+npm run dev                    # Development с hot-reload
+npm run build                  # TypeScript компиляция
+npm start                      # Production сервер
+npm run start:migrate          # Миграции + запуск (для Railway)
+npm run prisma:generate        # Генерация Prisma Client
+npm run prisma:migrate         # Применение миграций (dev)
+npm run prisma:migrate:deploy  # Применение миграций (prod)
+npm run prisma:studio          # Prisma Studio GUI
+npm run lint                   # ESLint проверка
+npm run format                 # Prettier форматирование
+npm run check-env              # Проверка переменных окружения
+npm run railway:deploy         # Деплой на Railway
 ```
-
----
-
-**Server запускается на `http://localhost:5000`**

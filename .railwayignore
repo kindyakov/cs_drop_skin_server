@@ -1,0 +1,59 @@
+# Railway Ignore File
+# Файлы и директории, которые не нужно загружать на Railway
+
+# Source files (только dist нужен)
+src/
+*.ts
+!dist/**/*.ts
+tsconfig.json
+tsconfig.tsbuildinfo
+
+# Development files
+.env.example
+.env.local
+nodemon.json
+
+# Documentation
+CLAUDE.md
+*.md
+!README.md
+docs/
+
+# Testing
+test/
+tests/
+*.test.ts
+*.spec.ts
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Logs (будут генерироваться на Railway)
+logs/
+*.log
+
+# Cache
+.cache/
+temp/
+tmp/
+
+# Git
+.git/
+.gitignore
+
+# Development dependencies (будут установлены на Railway если нужны)
+node_modules/
+
+# Scripts
+sync-skins.ts
+test-csapi.ts
+check-env.js
+
+# Uploads (если есть файлы)
+uploads/*
+!uploads/.gitkeep
+
+# Data cache
+data/

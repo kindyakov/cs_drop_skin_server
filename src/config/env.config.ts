@@ -1,8 +1,11 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
 
-// Загрузка переменных окружения из .env файла
-dotenv.config();
+// Загрузка переменных окружения из .env файла (только для локальной разработки)
+// Railway автоматически добавляет переменные в process.env
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config();
+}
 
 // Environment variables schema with validation
 const envSchema = z.object({

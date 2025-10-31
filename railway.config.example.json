@@ -1,0 +1,48 @@
+{
+  "railway_variables_example": {
+    "description": "Скопируйте эти переменные в Railway → Variables → Raw Editor",
+    "required_variables": {
+      "NODE_ENV": "production",
+      "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
+      "JWT_SECRET": "ОБЯЗАТЕЛЬНО_ИЗМЕНИТЕ_ЭТОТ_КЛЮЧ_МИНИМУМ_32_СИМВОЛА",
+      "JWT_EXPIRES_IN": "1d",
+      "STEAM_API_KEY": "54BEBA3DA6491E55FBFFE4A870DE8E14",
+      "STEAM_RETURN_URL": "${{RAILWAY_PUBLIC_DOMAIN}}/api/v1/auth/steam/return",
+      "VK_APP_ID": "12345678",
+      "VK_APP_SECRET": "dummy_vk_secret_key_for_development_only",
+      "VK_CALLBACK_URL": "${{RAILWAY_PUBLIC_DOMAIN}}/api/v1/auth/vk/callback",
+      "FRONTEND_URL": "http://localhost:3000",
+      "CORS_ORIGIN": "http://localhost:3000",
+      "YOOKASSA_SHOP_ID": "dummy_shop_id_for_dev",
+      "YOOKASSA_SECRET_KEY": "dummy_yookassa_secret_key_for_development_only",
+      "MARKET_CS_API_KEY": "1F9rO5zx1plS1K6WRTX8pQfPW522N4D",
+      "RATE_LIMIT_WINDOW_MS": "60000",
+      "RATE_LIMIT_MAX_REQUESTS": "100",
+      "NAME_CACHE_FILE": "skins-cache.json",
+      "LOG_LEVEL": "info",
+      "PORT": "5000"
+    },
+    "production_checklist": {
+      "⚠️ ОБЯЗАТЕЛЬНО ИЗМЕНИТЬ": [
+        "JWT_SECRET - сгенерируйте криптостойкий ключ (минимум 32 символа)",
+        "FRONTEND_URL - укажите реальный домен фронтенда",
+        "CORS_ORIGIN - укажите реальный домен фронтенда",
+        "YOOKASSA_SHOP_ID - реальный ID магазина (если используете)",
+        "YOOKASSA_SECRET_KEY - реальный секретный ключ (если используете)",
+        "VK_APP_ID - реальный App ID (если используете VK OAuth)",
+        "VK_APP_SECRET - реальный App Secret (если используете VK OAuth)"
+      ]
+    },
+    "railway_automatic_variables": {
+      "${{RAILWAY_PUBLIC_DOMAIN}}": "Автоматический домен Railway (например: your-app.railway.app)",
+      "${{Postgres.DATABASE_URL}}": "Автоматическая ссылка на PostgreSQL из Railway Database"
+    },
+    "notes": [
+      "Переменные добавляются в Railway → Settings → Variables",
+      "После добавления переменных Railway автоматически перезапустит приложение",
+      "DATABASE_URL автоматически создается при добавлении PostgreSQL сервиса",
+      "RAILWAY_PUBLIC_DOMAIN автоматически генерируется Railway",
+      "Для production обязательно измените dummy/test значения на реальные"
+    ]
+  }
+}
