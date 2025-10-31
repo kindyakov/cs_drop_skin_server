@@ -11,7 +11,7 @@ passport.use(
   new SteamStrategy(
     {
       returnURL: config.steam.returnUrl,
-      realm: `http://localhost:${config.port}`, // https://permanently-jaunty-murrelet.cloudpub.ru/
+      realm: `https://cs-drop-skin-server.onrender.com`, // https://permanently-jaunty-murrelet.cloudpub.ru/
       apiKey: config.steam.apiKey,
     },
     async (identifier, profile, done) => {

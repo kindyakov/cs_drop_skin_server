@@ -54,6 +54,11 @@ coverage/
 temp/
 tmp/
 
+# Data exports/backups
+data-export/
+*.dump
+backup*.sql
+/scripts
 test-csapi.ts
 
 CLAUDE.md

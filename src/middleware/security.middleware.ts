@@ -12,38 +12,14 @@ export const securityMiddleware = helmet();
 
 /**
  * Настройка CORS (Cross-Origin Resource Sharing)
+ * Упрощенная версия для Render
  * 
  * @returns {Function} Express middleware для CORS
  */
 export const corsMiddleware = cors({
-  // Разрешенные источники
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    // Разрешаем запросы без origin (для мобильных приложений, Postman и т.д.)
-    if (!origin) {
-      return callback(null, true);
-    }
-
-    // В development режиме разрешаем любой источник
-    if (config.isDevelopment) {
-      return callback(null, true);
-    }
-
-    // В production режиме проверяем origin
-    const allowedOrigins = config.cors.origin.split(',').map(o => o.trim());
-    if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-
-    return callback(new Error('Not allowed by CORS'), false);
-  },
-
-  // Разрешаем учетные данные (cookies, authorization headers)
+  origin: '*', // Разрешаем все домены в production
   credentials: true,
-
-  // Разрешенные HTTP методы
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-
-  // Разрешенные заголовки
   allowedHeaders: [
     'Origin',
     'X-Requested-With',
@@ -53,17 +29,9 @@ export const corsMiddleware = cors({
     'Cache-Control',
     'Pragma'
   ],
-
-  // Заголовки, которые можно expose клиенту
   exposedHeaders: ['X-Total-Count', 'X-Page-Count'],
-
-  // Максимальное время для preflight запросов
-  maxAge: 86400, // 24 часа
-
-  // Передаем credentials в preflight запросах
+  maxAge: 86400,
   preflightContinue: false,
-
-  // Успешный статус для preflight
   optionsSuccessStatus: 204
 });
 
