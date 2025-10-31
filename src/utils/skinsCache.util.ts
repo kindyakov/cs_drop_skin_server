@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { logger } from '../middleware/logger.middleware.js';
-import { config } from '@/config/env.config.js';
+import { config } from '../config/env.config.js';
 
 /**
  * Типы для skins-cache.json
