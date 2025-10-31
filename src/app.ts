@@ -17,8 +17,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' })); // Парсит 
 // ==============================================
 // SECURITY & BASIC MIDDLEWARE
 // ==============================================
-app.use(securityMiddleware); // Security headers через Helmet
-app.use(corsMiddleware); // CORS configuration
+// app.use(securityMiddleware); // Security headers через Helmet
+// app.use(corsMiddleware); // CORS configuration
 
 // Rate limiting для API endpoints
 app.use('/api/', generalRateLimiter);
