@@ -172,6 +172,5 @@ npm run prisma:migrate:deploy  # Применение миграций (prod)
 npm run prisma:studio          # Prisma Studio GUI
 npm run lint                   # ESLint проверка
 npm run format                 # Prettier форматирование
-npm run check-env              # Проверка переменных окружения
 npm run railway:deploy         # Деплой на Railway
 ```

@@ -17,7 +17,6 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "sync-skins": "tsx sync-skins.ts",
     "sync-skins:info": "tsx sync-skins.ts info",
-    "check-env": "node check-env.js",
     "railway:deploy": "npm run build && railway up"
   },
   "keywords": [
