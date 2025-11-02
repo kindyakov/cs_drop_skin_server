@@ -93,6 +93,12 @@ const envSchema = z.object({
   // CORS & SECURITY
   // ================================
   CORS_ORIGIN: z.string().default('*'),
+  FRONTEND_URL: z
+    .string({
+      required_error: 'FRONTEND_URL is required for post-auth redirects',
+    })
+    .url()
+    .default('http://localhost:3000'),
 
   // ================================
   // RATE LIMITING
@@ -175,6 +181,11 @@ export const config = {
   // Security & middleware
   cors: {
     origin: validatedEnv.CORS_ORIGIN,
+  },
+
+  // Frontend
+  frontend: {
+    url: validatedEnv.FRONTEND_URL,
   },
 
   // Rate limiting

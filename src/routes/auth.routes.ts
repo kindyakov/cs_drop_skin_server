@@ -8,9 +8,9 @@ const router = Router();
 router.get('/steam', authController.steamAuth);
 router.get('/steam/return', authController.steamCallback);
 
-// VK OAuth
-router.get('/vk', authController.vkAuth);
-router.get('/vk/callback', authController.vkCallback);
+// VK ID OAuth 2.1 (new implementation)
+router.get('/vkid', authController.vkIdAuth as RequestHandler);
+router.get('/vkid/callback', authController.vkIdCallback as RequestHandler);
 
 // Protected
 router.get('/me', authenticate, authController.getCurrentUser as RequestHandler);

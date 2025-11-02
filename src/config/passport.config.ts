@@ -1,6 +1,5 @@
 import passport from 'passport';
 import { Strategy as SteamStrategy } from 'passport-steam';
-import { Strategy as VKontakteStrategy } from 'passport-vkontakte';
 import { PrismaClient } from '@prisma/client';
 import { config } from './env.config.js';
 import logger from '../middleware/logger.middleware.js';
@@ -11,7 +10,7 @@ passport.use(
   new SteamStrategy(
     {
       returnURL: config.steam.returnUrl,
-      realm: `https://cs-drop-skin-server.onrender.com`, // https://permanently-jaunty-murrelet.cloudpub.ru/
+      realm: `http://localhost:5000`, // https://cs-drop-skin-server.onrender.com
       apiKey: config.steam.apiKey,
     },
     async (identifier, profile, done) => {
@@ -46,50 +45,6 @@ passport.use(
         return done(null, { userId: user.id, role: user.role });
       } catch (error) {
         logger.error('Steam OAuth error:', error);
-        return done(error, undefined);
-      }
-    }
-  )
-);
-
-passport.use(
-  new VKontakteStrategy(
-    {
-      clientID: config.vk.appId,
-      clientSecret: config.vk.appSecret,
-      callbackURL: config.vk.callbackUrl,
-    },
-    async (_accessToken: any, _refreshToken: any, _params: any, profile: any, done: any) => {
-      try {
-        const vkId = profile.id;
-
-        logger.info(`VK OAuth attempt for vkId: ${vkId}`);
-
-        // Ищем пользователя в базе данных
-        let user = await prisma.user.findUnique({
-          where: { vkId },
-        });
-
-        if (user) {
-          logger.info(`Existing user found: ${user.username} (${user.id})`);
-          return done(null, { userId: user.id, role: user.role });
-        }
-
-        // Если пользователя нет, создаем нового
-        logger.info(`Creating new user for vkId: ${vkId}`);
-        user = await prisma.user.create({
-          data: {
-            vkId,
-            username: profile.displayName,
-            avatarUrl: profile.photos?.[0]?.value || null,
-            role: 'USER',
-          },
-        });
-
-        logger.info(`New user created: ${user.username} (${user.id})`);
-        return done(null, { userId: user.id, role: user.role });
-      } catch (error) {
-        logger.error('VK OAuth error:', error);
         return done(error, undefined);
       }
     }
