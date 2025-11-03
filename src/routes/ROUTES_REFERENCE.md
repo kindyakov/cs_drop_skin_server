@@ -83,7 +83,7 @@ GET   /api/v1/user/:id               → Профиль пользователя
 GET   /api/v1/user/profile           → Текущий профиль пользователя (JWT)
 GET   /api/v1/user/inventory         → Инвентарь пользователя с пагинацией (JWT)
 GET   /api/v1/user/history           → История открытий кейсов (JWT)
-PATCH /api/v1/user/profile/trade-url → Обновить trade URL (JWT + validation)
+PATCH /api/v1/user/trade-url → Обновить trade URL (JWT + validation)
 ```
 
 **Примечания:**
