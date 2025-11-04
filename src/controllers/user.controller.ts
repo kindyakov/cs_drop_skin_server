@@ -5,16 +5,15 @@ import { successResponse } from '../utils/index.js';
 
 /**
  * Получить профиль пользователя по ID (публичный endpoint)
- * Если пользователь авторизован И запрашивает свой профиль - вернуть расширенные данные
  */
-export const getUser = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+export const getUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
   try {
     const { id } = req.params;
-
-    // Проверяем, авторизован ли пользователь (опционально)
-    const requestingUserId = (req as AuthenticatedRequest).user?.userId;
-
-    const profile = await userService.getProfileById(id, requestingUserId);
+    const profile = await userService.getProfileById(id);
 
     if (!profile) {
       return res.status(404).json({
@@ -43,10 +42,10 @@ export const getInventory = async (
     const offset = parseInt(req.query.offset as string) || 0;
 
     const inventory = await userService.getUserInventory(userId, limit, offset);
-    
+
     // Получить общее количество для информации
-    const totalItems = await userService.getUserInventory(userId).then(items => items.length);
-    
+    const totalItems = await userService.getUserInventory(userId).then((items) => items.length);
+
     successResponse(res, {
       items: inventory,
       pagination: {

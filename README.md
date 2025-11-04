@@ -76,8 +76,8 @@ http://localhost:5000/api/v1/
 ```
 GET  /api/v1/auth/steam          → OAuth через Steam
 GET  /api/v1/auth/steam/return   → Steam callback
-GET  /api/v1/auth/vk             → OAuth через VK
-GET  /api/v1/auth/vk/callback    → VK callback
+GET  /api/v1/auth/vkid           → OAuth через VK
+GET  /api/v1/auth/vkid/callback  → VK callback
 GET  /api/v1/auth/me             → Профиль (JWT)
 ```
 

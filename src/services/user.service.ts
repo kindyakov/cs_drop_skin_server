@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import type { IUserItem, IUserPublicProfile, IUserExtendedProfile } from '../types/index.js';
+import type { IUserItem, IUserPublicProfile } from '../types/index.js';
 
 const prisma = new PrismaClient();
 
@@ -12,21 +12,54 @@ export const getUserInventory = async (
   offset: number = 0
 ): Promise<IUserItem[]> => {
   const items = await prisma.userItem.findMany({
-    where: { userId, status: 'OWNED' },
+    where: { userId, status: { in: ['OWNED', 'SOLD', 'WITHDRAWN'] } },
     include: { item: true },
     orderBy: { acquiredAt: 'desc' },
     take: limit,
     skip: offset,
   });
 
-  // Конвертируем Decimal в number для price
-  return items.map((userItem) => ({
-    ...userItem,
-    item: {
-      ...userItem.item,
-      price: userItem.item.price.toNumber(),
+  // Получить информацию о кейсах для каждого предмета через CaseOpening
+  const itemIds = items.map((ui) => ui.itemId);
+  const caseOpenings = await prisma.caseOpening.findMany({
+    where: {
+      userId,
+      itemId: { in: itemIds },
     },
-  }));
+    include: {
+      case: {
+        select: {
+          slug: true,
+          imageUrl: true,
+        },
+      },
+    },
+    orderBy: { openedAt: 'desc' },
+  });
+
+  // Создать мапу itemId -> case info
+  const itemToCaseMap = new Map<string, { slug: string; imageUrl: string }>();
+  caseOpenings.forEach((opening) => {
+    if (!itemToCaseMap.has(opening.itemId)) {
+      itemToCaseMap.set(opening.itemId, {
+        slug: opening.case.slug,
+        imageUrl: opening.case.imageUrl,
+      });
+    }
+  });
+
+  // Конвертируем Decimal в number для price и добавляем информацию о кейсе
+  return items.map((userItem) => {
+    const caseInfo = itemToCaseMap.get(userItem.itemId);
+    return {
+      ...userItem,
+      item: {
+        ...userItem.item,
+        price: userItem.item.price.toNumber(),
+      },
+      case: caseInfo || null,
+    };
+  });
 };
 
 // Получить историю открытий
@@ -46,12 +79,9 @@ export const getUserOpenings = async (userId: string, limit = 50) => {
 
 /**
  * Получить профиль пользователя по ID
- * Возвращает публичный профиль или расширенный (если запрашивает свой)
+ * Возвращает публичный профиль
  */
-export const getProfileById = async (
-  userId: string,
-  requestingUserId?: string
-): Promise<IUserPublicProfile | IUserExtendedProfile | null> => {
+export const getProfileById = async (userId: string): Promise<IUserPublicProfile | null> => {
   // Получить пользователя с favorite case и best drop
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -85,24 +115,57 @@ export const getProfileById = async (
 
   // Получить первые 21 предмет инвентаря (сортировка по дате получения)
   const inventoryRaw = await prisma.userItem.findMany({
-    where: { userId, status: 'OWNED' },
+    where: { userId, status: { in: ['OWNED', 'SOLD', 'WITHDRAWN'] } },
     include: { item: true },
     orderBy: { acquiredAt: 'desc' },
     take: 21,
   });
 
-  // Конвертируем Decimal в number для price
-  const inventory = inventoryRaw.map((userItem) => ({
-    ...userItem,
-    item: {
-      ...userItem.item,
-      price: userItem.item.price.toNumber(),
+  // Получить информацию о кейсах для каждого предмета через CaseOpening
+  const userItemIds = inventoryRaw.map((ui) => ui.itemId);
+  const caseOpenings = await prisma.caseOpening.findMany({
+    where: {
+      userId,
+      itemId: { in: userItemIds },
     },
-  }));
+    include: {
+      case: {
+        select: {
+          slug: true,
+          imageUrl: true,
+        },
+      },
+    },
+    orderBy: { openedAt: 'desc' },
+  });
+
+  // Создать мапу itemId -> case info (берем последнее открытие для каждого предмета)
+  const itemToCaseMap = new Map<string, { slug: string; imageUrl: string }>();
+  caseOpenings.forEach((opening) => {
+    if (!itemToCaseMap.has(opening.itemId)) {
+      itemToCaseMap.set(opening.itemId, {
+        slug: opening.case.slug,
+        imageUrl: opening.case.imageUrl,
+      });
+    }
+  });
+
+  // Конвертируем Decimal в number для price и добавляем информацию о кейсе
+  const inventory = inventoryRaw.map((userItem) => {
+    const caseInfo = itemToCaseMap.get(userItem.itemId);
+    return {
+      ...userItem,
+      item: {
+        ...userItem.item,
+        price: userItem.item.price.toNumber(),
+      },
+      case: caseInfo || null, // Добавляем информацию о кейсе (slug и imageUrl)
+    };
+  });
 
   // Получить общее количество предметов
   const totalItems = await prisma.userItem.count({
-    where: { userId, status: 'OWNED' },
+    where: { userId, status: { in: ['OWNED', 'SOLD', 'WITHDRAWN'] } },
   });
 
   // Проверить, есть ли ещё предметы для подгрузки
@@ -123,14 +186,16 @@ export const getProfileById = async (
     ? `https://steamcommunity.com/profiles/${user.steamId}`
     : null;
 
+  const vkProfileUrl = user.vkId ? `https://vk.com/id${user.vkId}` : null;
+
   // Базовый публичный профиль
   const publicProfile: IUserPublicProfile = {
     id: user.id,
     username: user.username,
     avatarUrl: user.avatarUrl,
-    role: user.role as any,
     createdAt: user.createdAt,
     steamProfileUrl,
+    vkProfileUrl,
     favoriteCase: user.favoriteCase
       ? {
           ...user.favoriteCase,
@@ -147,20 +212,6 @@ export const getProfileById = async (
     totalItems,
     hasMore,
   };
-
-  // Если пользователь запрашивает СВОЙ профиль - вернуть расширенные данные
-  const isOwnProfile = requestingUserId && requestingUserId === userId;
-
-  if (isOwnProfile) {
-    const extendedProfile: IUserExtendedProfile = {
-      ...publicProfile,
-      balance: user.balance,
-      tradeUrl: user.tradeUrl,
-      isBlocked: user.isBlocked,
-    };
-
-    return extendedProfile;
-  }
 
   return publicProfile;
 };

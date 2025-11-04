@@ -3,14 +3,14 @@ export const UserRoles = {
   USER: 'USER',
   ADMIN: 'ADMIN',
 } as const;
-export type UserRole = typeof UserRoles[keyof typeof UserRoles];
+export type UserRole = (typeof UserRoles)[keyof typeof UserRoles];
 
 // Типы транзакций
 export const TransactionTypes = {
   DEPOSIT: 'DEPOSIT',
   WITHDRAWAL: 'WITHDRAWAL',
 } as const;
-export type TransactionType = typeof TransactionTypes[keyof typeof TransactionTypes];
+export type TransactionType = (typeof TransactionTypes)[keyof typeof TransactionTypes];
 
 // Статусы транзакций
 export const TransactionStatuses = {
@@ -18,7 +18,7 @@ export const TransactionStatuses = {
   COMPLETED: 'COMPLETED',
   FAILED: 'FAILED',
 } as const;
-export type TransactionStatus = typeof TransactionStatuses[keyof typeof TransactionStatuses];
+export type TransactionStatus = (typeof TransactionStatuses)[keyof typeof TransactionStatuses];
 
 // Редкость предметов
 export const ItemRarities = {
@@ -30,11 +30,12 @@ export const ItemRarities = {
   COVERT: 'COVERT',
   KNIFE: 'KNIFE',
 } as const;
-export type ItemRarity = typeof ItemRarities[keyof typeof ItemRarities];
+export type ItemRarity = (typeof ItemRarities)[keyof typeof ItemRarities];
 
 // Статусы предметов в инвентаре
 export const ItemStatuses = {
   OWNED: 'OWNED',
   WITHDRAWN: 'WITHDRAWN',
+  SOLD: 'SOLD',
 } as const;
-export type ItemStatus = typeof ItemStatuses[keyof typeof ItemStatuses];
+export type ItemStatus = (typeof ItemStatuses)[keyof typeof ItemStatuses];

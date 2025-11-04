@@ -44,6 +44,8 @@ export const getCurrentUser = async (
         balance: true,
         role: true,
         createdAt: true,
+        isBlocked: true,
+        tradeUrl: true,
       },
     });
 
@@ -62,11 +64,7 @@ export const getCurrentUser = async (
 // ================================
 
 // Initialize VK ID service
-const vkidService = new VKIDService(
-  config.vk.appId,
-  config.vk.appSecret,
-  config.vk.callbackUrl
-);
+const vkidService = new VKIDService(config.vk.appId, config.vk.appSecret, config.vk.callbackUrl);
 
 /**
  * Initiates VK ID OAuth 2.1 authentication flow

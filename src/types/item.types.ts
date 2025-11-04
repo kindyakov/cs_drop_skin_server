@@ -24,4 +24,8 @@ export interface IUserItem {
   acquiredAt: Date;
   status: ItemStatus;
   item: IItem;
+  case: {
+    slug: string;
+    imageUrl: string;
+  } | null; // Информация о кейсе, из которого выпал предмет
 }

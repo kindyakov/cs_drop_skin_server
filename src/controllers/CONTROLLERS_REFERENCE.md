@@ -1,6 +1,7 @@
 # 📋 Контроллеры - Справочник
 
 ## 📗 Описание
+
 Справочник контроллеров проекта с описанием функций в папке `src/controllers/`.
 
 ---
@@ -10,6 +11,7 @@
 ### Функции аутентификации через OAuth
 
 #### **Steam OAuth**
+
 - **`steamAuth`** - Начало Steam OAuth аутентификации
   - Использует Passport Steam strategy
   - Redirect пользователя на Steam для авторизации
@@ -23,6 +25,7 @@
   - URL: `${FRONTEND_URL}/auth/success?token=${token}`
 
 #### **VK OAuth**
+
 - **`vkAuth`** - Начало VK OAuth аутентификации
   - Использует Passport VK strategy
   - Redirect пользователя на VK для авторизации
@@ -36,6 +39,7 @@
   - URL: `${FRONTEND_URL}/auth/success?token=${token}`
 
 #### **User Profile**
+
 - **`getCurrentUser`** - Получение профиля текущего пользователя
   - Требуется JWT токен (authenticate middleware)
   - Search: `prisma.user.findUnique({ where: { id: req.user!.userId } })`
@@ -47,6 +51,7 @@
 ### 🛠 Техническая реализация
 
 #### **依赖 (Dependencies):**
+
 ```typescript
 import { type Request, type Response, type NextFunction } from 'express';
 import passport from '../config/passport.config.js';
@@ -58,11 +63,13 @@ import { type AuthenticatedRequest } from '../middleware/auth.middleware.js';
 ```
 
 #### **Prisma Integration:**
+
 - User lookup/creation выполняется в Passport strategy
 - `const prisma = new PrismaClient();` для работы с базой
 - Selective field selection для возврата только нужных данных
 
 #### **TypeScript Типизация:**
+
 - `AuthenticatedRequest` для протектед роутов
 - Использование `type` imports для tree-shaking
 - Promise<void> для async функций
@@ -70,12 +77,14 @@ import { type AuthenticatedRequest } from '../middleware/auth.middleware.js';
 ### 🌐 OAuth Flow
 
 #### **1. User-initiated OAuth:**
+
 ```
 GET /auth/steam → Steam → Database → JWT → Frontend Redirect
 GET /auth/vk → VK → Database → JWT → Frontend Redirect
 ```
 
 #### **2. Frontend integration:**
+
 ```typescript
 // Frontend получает token
 window.location.href = `${FRONTEND_URL}/auth/success?token=eyJ...`;
@@ -85,11 +94,12 @@ localStorage.setItem('token', token);
 
 // Использует в запросах
 fetch('/api/profile', {
-  headers: { 'Authorization': `Bearer ${token}` }
+  headers: { Authorization: `Bearer ${token}` },
 });
 ```
 
 #### **3. Protected API access:**
+
 ```bash
 GET /auth/me
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -98,6 +108,7 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
 ### 📍 Роуты (из `auth.routes.ts`)
 
 #### **OAuth Endpoints:**
+
 ```typescript
 // Steam OAuth
 router.get('/steam', authController.steamAuth);
@@ -114,11 +125,13 @@ router.get('/me', authenticate, authController.getCurrentUser as RequestHandler)
 ### 🔧 Error Handling
 
 #### **Authentication Errors:**
+
 - `UnauthorizedError` - неверный/отсутствующий JWT токен
 - `NotFoundError` - пользователь не найден в базе
 - Passport strategy errors (Steam/VK недоступны)
 
 #### **Common Patterns:**
+
 ```typescript
 try {
   // контроллер логика
@@ -130,14 +143,16 @@ try {
 ### 🔄 Token Lifecycle
 
 #### **JWT Payload Structure:**
+
 ```typescript
 interface JWTPayload {
-  userId: string;    // Prisma User.id
-  role: UserRole;    // Enum: USER, ADMIN
+  userId: string; // Prisma User.id
+  role: UserRole; // Enum: USER, ADMIN
 }
 ```
 
 #### **Token Generation:**
+
 ```typescript
 const token = generateToken({ userId: user.id, role: user.role });
 // expiresIn: 2h (из utils/jwt.util.ts)
@@ -146,6 +161,7 @@ const token = generateToken({ userId: user.id, role: user.role });
 ### 📝 Примеры использования
 
 #### **Frontend OAuth Integration:**
+
 ```javascript
 // Начало авторизации
 window.location.href = '/api/auth/steam';
@@ -159,12 +175,13 @@ router.get('/auth/success', (req, res) => {
 ```
 
 #### **API Usage:**
+
 ```typescript
 // Получение текущего пользователя
 const response = await fetch('/api/auth/me', {
   headers: {
-    'Authorization': `Bearer ${token}`
-  }
+    Authorization: `Bearer ${token}`,
+  },
 });
 const user = await response.json();
 ```
@@ -176,6 +193,7 @@ const user = await response.json();
 ### Функции работы с кейсами
 
 #### **Public Case Operations**
+
 - **`getAllCases`** - Получение всех активных кейсов
   - Использует `caseService.getAllActiveCases()`
   - Возвращает список кейсов без предметов
@@ -190,6 +208,7 @@ const user = await response.json();
 ### 🛠 Техническая реализация
 
 #### **Dependencies:**
+
 ```typescript
 import { Request, Response, NextFunction } from 'express';
 import * as caseService from '../services/case.service.js';
@@ -197,6 +216,7 @@ import { successResponse } from '../utils/index.js';
 ```
 
 #### **Error Handling:**
+
 ```typescript
 try {
   // Controller logic
@@ -206,20 +226,23 @@ try {
 ```
 
 #### **TypeScript Типизация:**
+
 - Стандартные Express типов: Request, Response, NextFunction
 - Service функции возвращают ICase[] и ICaseWithItems
 - Автоматическая обработка ошибок из NotFoundError
 
 ### 📍 Подключенные роуты (из `case.routes.ts`)
+
 ```typescript
 // Публичные роуты (без авторизации)
-router.get('/', caseController.getAllCases);           // GET /api/v1/cases
-router.get('/:slug', caseController.getCaseBySlug);     // GET /api/v1/cases/:slug
+router.get('/', caseController.getAllCases); // GET /api/v1/cases
+router.get('/:slug', caseController.getCaseBySlug); // GET /api/v1/cases/:slug
 ```
 
 ### 🌐 API Endpoint Examples
 
 #### **Получение всех кейсов:**
+
 ```bash
 GET /api/v1/cases
 Response: [
@@ -236,6 +259,7 @@ Response: [
 ```
 
 #### **Получение кейса с предметами:**
+
 ```bash
 GET /api/v1/cases/wildfire-case
 Response: {
@@ -265,11 +289,13 @@ Response: {
 ### ⚠️ Особенности реализации
 
 #### **Только чтение:**
+
 - **Нет POST/PUT/DELETE** операций (для будущих админ роутов)
 - **Нет middleware авторизации** - публичный доступ
 - **Нет валидации** - простые параметры
 
 #### **Dependencies от сервисов:**
+
 - Полностью relies на `case.service.ts` для бизнес-логики
 - Нет прямых Prisma запросов в контроллере
 - Чистая сепарация: Controller → Service → Database
@@ -281,6 +307,7 @@ Response: {
 ### Функции открытия кейсов
 
 #### **Case Opening Operations**
+
 - **`openCase`** - Открытие кейса
   - Использует `AuthenticatedRequest` для доступа к `userId`
   - Извлекает `{ caseId }` из `req.body`
@@ -297,6 +324,7 @@ Response: {
 ### 🛠 Техническая реализация
 
 #### **Dependencies:**
+
 ```typescript
 import { Request, Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
@@ -305,11 +333,13 @@ import { successResponse } from '../utils/index.js';
 ```
 
 #### **Route Protection:**
+
 - **`openCase`** - Требует JWT аутентификацию (`AuthenticatedRequest`)
 - **`getRecentOpenings`** - Публичный доступ без авторизации
 - Rate limiting через middleware для защиты от abuse
 
 #### **Error Handling:**
+
 ```typescript
 try {
   // Controller logic
@@ -319,17 +349,19 @@ try {
 ```
 
 ### 📍 Подключенные роуты (из `caseOpening.routes.ts`)
+
 ```typescript
 // Открытие кейса (защищено + rate limit)
 router.post('/open', authenticate, caseOpeningRateLimiter, caseOpeningController.openCase);
 
-// Live-лента (публичный endpoint)  
+// Live-лента (публичный endpoint)
 router.get('/recent', caseOpeningController.getRecentOpenings);
 ```
 
 ### 🌐 API Endpoint Examples
 
 #### **Открытие кейса:**
+
 ```bash
 POST /api/v1/openings/open
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -359,6 +391,7 @@ Response:
 ```
 
 #### **Live-лента:**
+
 ```bash
 GET /api/v1/openings/recent?limit=10
 Response:
@@ -383,17 +416,20 @@ Response:
 ### ⚠️ Особенности реализации
 
 #### **Безопасность транзакций:**
+
 - **Prisma `$transaction`** для атомарности операций
 - **Баланс проверяется и списывается** в одной транзакции
 - **Предмет добавляется в инвентарь** атомарно
 - **История записывается** одновременно
 
 #### **Rate Limiting:**
+
 - **`caseOpeningRateLimiter`** для защиты от спама
 - **JWT аутентификация** для проверки пользователя
 - **Публичный доступ** только к live-ленте
 
 #### **Алгоритм выпадения:**
+
 - **Weighted random selection** с учетом шансов
 - **Криптографический генератор** `Math.random()`
 - **Накопительные интервалы** для правильного распределения
@@ -403,6 +439,7 @@ Response:
 ## 📝 Паттерны проектирования
 
 ### **Controller Structure:**
+
 1. **Dependencies imports** - все зависимости вверху
 2. **Initialization** - Prisma client
 3. **Export functions** - каждая функция как middleware
@@ -410,8 +447,9 @@ Response:
 5. **Type safety** - строгие типы везде
 
 ### **Dependencies Management:**
+
 - Express types (Request, Response, NextFunction)
-- Passport auth strategies  
+- Passport auth strategies
 - JWT utils для токенов
 - Prisma для DB
 - Utils для response/error handling
@@ -424,6 +462,7 @@ Response:
 ### Функции профиля пользователя
 
 #### **User Profile Operations**
+
 - **`getUser`** - Получение профиля пользователя по ID
   - **Публичный endpoint** - НЕ требует обязательной авторизации
   - Использует `optionalAuth` middleware
@@ -431,8 +470,7 @@ Response:
   - Извлекает `requestingUserId` из `req.user?.userId` (если авторизован)
   - Вызывает `userService.getProfileById(id, requestingUserId)`
   - **Возвращает:**
-    - `IUserPublicProfile` если не авторизован ИЛИ запрашивает чужой профиль
-    - `IUserExtendedProfile` если авторизован И запрашивает свой профиль
+    - `IUserPublicProfile` профиль пользователя по ID
   - Использует `successResponse(res, profile)`
   - **Ошибки:** 404 если пользователь не найден
 
@@ -443,6 +481,7 @@ Response:
   - Вызывает `userService.getUserInventory(userId, limit, offset)`
   - Возвращает объект с items и pagination информацией
   - **Response structure:**
+
 ```typescript
     {
       items: IUserItem[],
@@ -472,6 +511,7 @@ Response:
 ### 🛠 Техническая реализация
 
 #### **Dependencies:**
+
 ```typescript
 import { Request, Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
@@ -480,23 +520,32 @@ import { successResponse } from '../utils/index.js';
 ```
 
 #### **Route Protection:**
+
 - **getUser:** `optionalAuth` - не обязательная авторизация
 - **getInventory:** `authenticate` + `checkUserBlocked`
 - **getOpeningsHistory:** `authenticate` + `checkUserBlocked`
 - **updateTradeUrl:** `authenticate` + `checkUserBlocked` + `validateTradeUrl`
 
 ### 📍 Подключенные роуты (из `user.routes.ts`)
+
 ```typescript
 // Все роуты с префиксом /api/v1/user
 router.get('/inventory', authenticate, checkUserBlocked, controller.getInventory);
 router.get('/history', authenticate, checkUserBlocked, controller.getOpeningsHistory);
-router.patch('/trade-url', authenticate, checkUserBlocked, validateTradeUrl, controller.updateTradeUrl);
+router.patch(
+  '/trade-url',
+  authenticate,
+  checkUserBlocked,
+  validateTradeUrl,
+  controller.updateTradeUrl
+);
 router.get('/:id', optionalAuth, controller.getUser); // ПОСЛЕДНИЙ роут!
 ```
 
 ### 🌐 API Endpoint Examples
 
 #### **Получение публичного профиля:**
+
 ```bash
 GET /api/v1/user/user123
 
@@ -531,6 +580,7 @@ Response:
 ```
 
 #### **Получение своего профиля (расширенный):**
+
 ```bash
 GET /api/v1/user/user123
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -548,6 +598,7 @@ Response:
 ```
 
 #### **Получение инвентаря с пагинацией:**
+
 ```bash
 GET /api/v1/user/inventory?limit=21&offset=0
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -568,6 +619,7 @@ Response:
 ```
 
 #### **Обновление trade URL:**
+
 ```bash
 PATCH /api/v1/user/trade-url
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -588,15 +640,18 @@ Response:
 ### ⚠️ Особенности реализации
 
 #### **Публичный vs Расширенный профиль:**
+
 - Автоматическое определение через `optionalAuth` middleware
 - Если JWT есть И `requestingUserId === userId` → расширенный профиль
 - Иначе → публичный профиль
 
 #### **Порядок роутов:**
+
 - ⚠️ **КРИТИЧНО:** `/:id` должен быть ПОСЛЕДНИМ в user.routes.ts
 - Специфичные роуты (`/inventory`, `/history`) должны быть ПЕРЕД параметризованными
 
 #### **Пагинация инвентаря:**
+
 - Первоначальная загрузка: 21 предмет в профиле
 - Дополнительная загрузка: через GET /inventory с offset
 - `hasMore` показывает, есть ли ещё предметы
@@ -608,6 +663,7 @@ Response:
 ### Функции работы с платежами
 
 #### **Payment Operations**
+
 - **`createPayment`** - Создание платежа для пополнения баланса
   - Использует `AuthenticatedRequest` для доступа к `userId`
   - Извлекает `{ amount }` из `req.body`
@@ -632,6 +688,7 @@ Response:
 ### 🛠 Техническая реализация
 
 #### **Dependencies:**
+
 ```typescript
 import { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
@@ -644,11 +701,13 @@ const prisma = new PrismaClient();
 ```
 
 #### **Route Protection:**
+
 - **`createPayment`** - Требует JWT + paymentRateLimiter (5 req/min)
 - **`webhookHandler`** - Публичный (YooKassa webhook endpoint)
 - **`getUserTransactions`** - Требует JWT аутентификацию
 
 ### 📍 Подключенные роуты (из `payment.routes.ts`)
+
 ```typescript
 // Создание платежа
 router.post('/create', authenticate, paymentRateLimiter, paymentController.createPayment);
@@ -663,6 +722,7 @@ router.get('/transactions', authenticate, paymentController.getUserTransactions)
 ### 🌐 API Endpoint Examples
 
 #### **Создание платежа:**
+
 ```bash
 POST /api/v1/payments/create
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -684,6 +744,7 @@ Response:
 ```
 
 #### **История транзакций:**
+
 ```bash
 GET /api/v1/payments/transactions?limit=20
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -708,11 +769,13 @@ Response:
 ### ⚠️ Особенности реализации
 
 #### **Безопасность:**
+
 - **paymentRateLimiter** (5 req/min) для защиты от спама
 - **JWT аутентификация** для create и transactions endpoints
 - **Webhook без аутентификации** - YooKassa сервисный endpoint
 
 #### **Интеграция с YooKassa:**
+
 - **createPayment** создаёт платёж и возвращает URL для редиректа
 - **webhookHandler** обрабатывает уведомления автоматически
 - **Транзакции** атомарны через Prisma `$transaction`
@@ -724,6 +787,7 @@ Response:
 ### Функции управления кейсами (Admin)
 
 #### **Admin Case Operations**
+
 - **`createCase`** - Создание нового кейса
   - Использует `AuthenticatedRequest` (требуется admin права)
   - Извлекает `ICreateCaseInput` из `req.body`
@@ -754,6 +818,7 @@ Response:
 ### 🛠 Техническая реализация
 
 #### **Dependencies:**
+
 ```typescript
 import { Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware.js';
@@ -762,6 +827,7 @@ import { successResponse } from '../../utils/index.js';
 ```
 
 #### **Route Protection:**
+
 - **Все роуты требуют:**
   - `authenticate` - JWT аутентификация
   - `requireAdmin` - роль ADMIN
@@ -772,17 +838,40 @@ import { successResponse } from '../../utils/index.js';
   - `validateAddItemsToCase` для POST /:id/items
 
 ### 📍 Подключенные роуты (из `admin/adminCase.routes.ts`)
+
 ```typescript
 // Все роуты с префиксом /api/v1/admin/cases
-router.post('/', authenticate, requireAdmin, adminRateLimiter, validateCreateCase, controller.createCase);
-router.put('/:id', authenticate, requireAdmin, adminRateLimiter, validateUpdateCase, controller.updateCase);
+router.post(
+  '/',
+  authenticate,
+  requireAdmin,
+  adminRateLimiter,
+  validateCreateCase,
+  controller.createCase
+);
+router.put(
+  '/:id',
+  authenticate,
+  requireAdmin,
+  adminRateLimiter,
+  validateUpdateCase,
+  controller.updateCase
+);
 router.delete('/:id', authenticate, requireAdmin, adminRateLimiter, controller.deleteCase);
-router.post('/:id/items', authenticate, requireAdmin, adminRateLimiter, validateAddItemsToCase, controller.addItemsToCase);
+router.post(
+  '/:id/items',
+  authenticate,
+  requireAdmin,
+  adminRateLimiter,
+  validateAddItemsToCase,
+  controller.addItemsToCase
+);
 ```
 
 ### 🌐 API Endpoint Examples
 
 #### **Создание кейса:**
+
 ```bash
 POST /api/v1/admin/cases
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -814,6 +903,7 @@ Response:
 ```
 
 #### **Обновление кейса:**
+
 ```bash
 PUT /api/v1/admin/cases/case123
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -838,6 +928,7 @@ Response:
 ```
 
 #### **Добавление предметов в кейс:**
+
 ```bash
 POST /api/v1/admin/cases/case123/items
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -868,11 +959,13 @@ Response:
 ### ⚠️ Особенности реализации
 
 #### **Безопасность:**
+
 - **Triple protection:** authenticate + requireAdmin + adminRateLimiter
 - **Детальное логирование** всех админских действий
 - **Валидация входных данных** через express-validator
 
 #### **Бизнес-логика:**
+
 - **Автоматическая генерация slug** из name
 - **Soft delete** - кейсы не удаляются из БД
 - **Валидация шансов = 100%** при добавлении предметов
@@ -884,6 +977,7 @@ Response:
 ### Функции управления категориями (Admin)
 
 #### **Admin Category Operations**
+
 - **`getAllCategories`** - Получение всех категорий
   - Публичный для админов (не требует AuthenticatedRequest)
   - Вызывает `adminCategoryService.getAllCategories()`
@@ -929,6 +1023,7 @@ Response:
 ### 🛠 Техническая реализация
 
 #### **Dependencies:**
+
 ```typescript
 import { Request, Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware.js';
@@ -937,6 +1032,7 @@ import { successResponse } from '../../utils/index.js';
 ```
 
 #### **Route Protection:**
+
 - **Все роуты требуют:**
   - `authenticate` - JWT аутентификация
   - `requireAdmin` - роль ADMIN
@@ -947,19 +1043,42 @@ import { successResponse } from '../../utils/index.js';
   - `validateAssignCases` для POST /:id/assign-cases
 
 ### 📍 Подключенные роуты (из `admin/adminCategory.routes.ts`)
+
 ```typescript
 // Все роуты с префиксом /api/v1/admin/categories
 router.get('/', controller.getAllCategories);
 router.get('/:id', controller.getCategoryById);
-router.post('/', authenticate, requireAdmin, adminRateLimiter, validateCreateCategory, controller.createCategory);
-router.put('/:id', authenticate, requireAdmin, adminRateLimiter, validateUpdateCategory, controller.updateCategory);
+router.post(
+  '/',
+  authenticate,
+  requireAdmin,
+  adminRateLimiter,
+  validateCreateCategory,
+  controller.createCategory
+);
+router.put(
+  '/:id',
+  authenticate,
+  requireAdmin,
+  adminRateLimiter,
+  validateUpdateCategory,
+  controller.updateCategory
+);
 router.delete('/:id', authenticate, requireAdmin, adminRateLimiter, controller.deleteCategory);
-router.post('/:id/assign-cases', authenticate, requireAdmin, adminRateLimiter, validateAssignCases, controller.assignCasesToCategory);
+router.post(
+  '/:id/assign-cases',
+  authenticate,
+  requireAdmin,
+  adminRateLimiter,
+  validateAssignCases,
+  controller.assignCasesToCategory
+);
 ```
 
 ### 🌐 API Endpoint Examples
 
 #### **Получение всех категорий:**
+
 ```bash
 GET /api/v1/admin/categories
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -985,6 +1104,7 @@ Response:
 ```
 
 #### **Создание категории:**
+
 ```bash
 POST /api/v1/admin/categories
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -1014,6 +1134,7 @@ Response:
 ```
 
 #### **Назначение кейсов категории:**
+
 ```bash
 POST /api/v1/admin/categories/cat1/assign-cases
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -1048,11 +1169,13 @@ Response:
 ### ⚠️ Особенности реализации
 
 #### **Безопасность:**
+
 - **Triple protection:** authenticate + requireAdmin + adminRateLimiter
 - **Детальное логирование** всех админских действий
 - **Валидация входных данных** через express-validator
 
 #### **Бизнес-логика:**
+
 - **Автоматическая генерация slug** из name
 - **Soft delete** - категории не удаляются из БД
 - **SetNull для кейсов** - при удалении категории кейсы остаются
@@ -1065,6 +1188,7 @@ Response:
 ### Функции управления пользователями (Admin)
 
 #### **Admin User Operations**
+
 - **`getAllUsers`** - Получение списка пользователей
   - Извлекает фильтры из query параметров
   - Вызывает `adminUserService.getAllUsers(filters)`
@@ -1089,6 +1213,7 @@ Response:
 ### 🛠 Техническая реализация
 
 #### **Dependencies:**
+
 ```typescript
 import { Request, Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware.js';
@@ -1098,6 +1223,7 @@ import type { IGetUsersFilters } from '../../types/admin.types.js';
 ```
 
 #### **Route Protection:**
+
 - **Все роуты требуют:**
   - `authenticate` - JWT аутентификация
   - `requireAdmin` - роль ADMIN
@@ -1106,16 +1232,25 @@ import type { IGetUsersFilters } from '../../types/admin.types.js';
   - `validateUpdateUserBalance` для PATCH /:id/balance
 
 ### 📍 Подключенные роуты (из `admin/adminUser.routes.ts`)
+
 ```typescript
 // Все роуты с префиксом /api/v1/admin/users
 router.get('/', controller.getAllUsers);
 router.patch('/:id/toggle-block', controller.toggleUserBlock);
-router.patch('/:id/balance', authenticate, requireAdmin, adminRateLimiter, validateUpdateUserBalance, controller.updateUserBalance);
+router.patch(
+  '/:id/balance',
+  authenticate,
+  requireAdmin,
+  adminRateLimiter,
+  validateUpdateUserBalance,
+  controller.updateUserBalance
+);
 ```
 
 ### 🌐 API Endpoint Examples
 
 #### **Получение списка пользователей:**
+
 ```bash
 GET /api/v1/admin/users?role=USER&search=john&limit=20&offset=0
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -1138,6 +1273,7 @@ Response:
 ```
 
 #### **Блокировка пользователя:**
+
 ```bash
 PATCH /api/v1/admin/users/user1/toggle-block
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -1156,6 +1292,7 @@ Response:
 ```
 
 #### **Обновление баланса:**
+
 ```bash
 PATCH /api/v1/admin/users/user1/balance
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -1182,11 +1319,13 @@ Response:
 ### ⚠️ Особенности реализации
 
 #### **Безопасность:**
+
 - **Защита от блокировки админов** - нельзя заблокировать ADMIN
 - **Проверка баланса** - не допускает отрицательных значений
 - **История операций** - все изменения баланса записываются
 
 #### **Блокировка:**
+
 - Заблокированные пользователи проверяются через `checkUserBlocked` middleware
 - Блокировка применяется к критичным операциям (открытие кейсов, платежи)
 
@@ -1197,6 +1336,7 @@ Response:
 ### Функции статистики (Admin)
 
 #### **Admin Stats Operations**
+
 - **`getDashboardStats`** - Получение статистики дашборда
   - Вызывает `adminStatsService.getDashboardStats()`
   - Возвращает агрегированную статистику по всем метрикам
@@ -1217,6 +1357,7 @@ Response:
 ### 🛠 Техническая реализация
 
 #### **Dependencies:**
+
 ```typescript
 import { Request, Response, NextFunction } from 'express';
 import * as adminStatsService from '../../services/admin/adminStats.service.js';
@@ -1224,12 +1365,14 @@ import { successResponse } from '../../utils/index.js';
 ```
 
 #### **Route Protection:**
+
 - **Все роуты требуют:**
   - `authenticate` - JWT аутентификация
   - `requireAdmin` - роль ADMIN
   - `adminRateLimiter` - 50 req/min
 
 ### 📍 Подключенные роуты (из `admin/adminStats.routes.ts`)
+
 ```typescript
 // Все роуты с префиксом /api/v1/admin/stats
 router.get('/dashboard', controller.getDashboardStats);
@@ -1240,6 +1383,7 @@ router.get('/recent-transactions', controller.getRecentTransactions);
 ### 🌐 API Endpoint Examples
 
 #### **Статистика дашборда:**
+
 ```bash
 GET /api/v1/admin/stats/dashboard
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -1273,6 +1417,7 @@ Response:
 ```
 
 #### **Популярные кейсы:**
+
 ```bash
 GET /api/v1/admin/stats/popular-cases?limit=5
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -1294,6 +1439,7 @@ Response:
 ```
 
 #### **Недавние транзакции:**
+
 ```bash
 GET /api/v1/admin/stats/recent-transactions?limit=10
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -1319,11 +1465,13 @@ Response:
 ### ⚠️ Особенности реализации
 
 #### **Производительность:**
+
 - **Оптимизированные запросы** - параллельное выполнение
 - **Агрегация на уровне БД** - минимальная нагрузка
 - **Кэширование** - можно добавить в будущем
 
 #### **Метрики:**
+
 - **Все суммы в копейках** - консистентность с остальным API
 - **Временные периоды** - динамический расчёт от текущей даты
 - **Только завершённые транзакции** - COMPLETED status
@@ -1335,6 +1483,7 @@ Response:
 ### Функции работы со скинами (Admin)
 
 #### **Admin Skins Operations**
+
 - **`getFilteredSkins`** - Получение отфильтрованного списка скинов с пагинацией
   - Извлекает и валидирует query параметры (search, page, limit, sortBy и др.)
   - Вызывает `adminSkinsService.getFilteredSkins(filters)`
@@ -1370,21 +1519,23 @@ Response:
 ### 🛠 Техническая реализация
 
 #### **Dependencies:**
+
 ```typescript
 import { Request, Response, NextFunction } from 'express';
 import { adminSkinsService } from '../../services/admin/adminSkins.service.js';
 import { AppError } from '../../utils/errors.util.js';
 import { successResponse } from '../../utils/response.util.js';
 import { logger } from '../../middleware/logger.middleware.js';
-import type { 
-  SkinFilters, 
-  FilteredSkinsResult, 
-  AvailableFilters, 
-  SkinsStats 
+import type {
+  SkinFilters,
+  FilteredSkinsResult,
+  AvailableFilters,
+  SkinsStats,
 } from '../../services/admin/adminSkins.service.js';
 ```
 
 #### **Route Protection:**
+
 - **Все роуты требуют:**
   - `authenticate` - JWT аутентификация
   - `requireAdmin` - роль ADMIN
@@ -1392,13 +1543,15 @@ import type {
   - `syncRateLimiter` - 5 запросов в 15 минут (тяжёлая операция)
 
 #### **Query Parameters Validation:**
+
 - `page`: min 1, default 1
-- `limit`: min 1, max 500, default 50  
+- `limit`: min 1, max 500, default 50
 - `sortBy`: 'name' | 'rarity' | 'weapon' | 'category', default 'name'
 - `sortOrder`: 'asc' | 'desc', default 'asc'
 - `stattrak/souvenir`: преобразует строку 'true'|'false' в boolean
 
 ### 📍 Подключенные роуты (из `admin/adminSkins.routes.ts`)
+
 ```typescript
 // Все роуты с префиксом /api/v1/admin/skins
 router.use(authenticate, requireAdmin);
@@ -1422,6 +1575,7 @@ router.post('/sync', syncRateLimiter, adminSkinsController.syncSkinsFromApi);
 ### 🌐 API Endpoint Examples
 
 #### **Фильтрация скинов:**
+
 ```bash
 GET /api/v1/admin/skins?search=ak&page=1&limit=20&sortBy=name&sortOrder=asc&weaponId=weapon1&stattrak=false
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -1467,6 +1621,7 @@ Response:
 ```
 
 #### **Получение скина по ID:**
+
 ```bash
 GET /api/v1/admin/skins/skin1
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -1503,6 +1658,7 @@ Response:
 ```
 
 #### **Доступные фильтры:**
+
 ```bash
 GET /api/v1/admin/skins/filters
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -1536,6 +1692,7 @@ Response:
 ```
 
 #### **Статистика скинов:**
+
 ```bash
 GET /api/v1/admin/skins/stats
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -1557,6 +1714,7 @@ Response:
 ```
 
 #### **Синхронизация:**
+
 ```bash
 POST /api/v1/admin/skins/sync
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
@@ -1576,21 +1734,25 @@ Response:
 ### ⚠️ Особенности реализации
 
 #### **Производительность:**
+
 - **Кэш в памяти** - skinsCache.util.ts с индексами
 - **Мгновенные запросы** - нет обращений к БД при фильтрации
 - **Интеллектуальное использование индексов** - поиск по rarity/weapon через map
 
 #### **Rate Limiting:**
+
 - **Агрессивные лимиты** на синхронизацию (5 раз/15 минут)
 - **Тяжёлая операция** - ~4-5 секунд на выполнение
 - **Защита от спама** - не может быть использована DoS
 
 #### **Детальное логирование:**
+
 - **Debug уровень** - отладочная информация
 - **Info уровень** - синхронизация
 - **Error уровень** - все ошибки с контекстом
 
 #### **Валидация и безопасность:**
+
 - **Проверка типов** строковых параметров
 - **Защита от инъекций** - нет прямых SQL запросов
 - **AppError с корректными status codes**
@@ -1600,6 +1762,7 @@ Response:
 ## 🚀 Future Controllers (Планируемые)
 
 ### **AdminPanelController** - админ функции
+
 - CRUD операций для кейсов
 - Управление предметами
 
@@ -1608,20 +1771,23 @@ Response:
 ## 📦 Совместимость
 
 ### **Middleware Integration:**
+
 - `authenticate` для JWT проверки
 - Error handling через centralized handler
 - Response standardization через utils
 
 ### **Database Integration:**
+
 - Prisma User model
 - Role-based access control
 - Transaction logging (future)
 
 ### **Frontend Integration:**
+
 - JWT токен в HTTP headers
 - Standardized response format
 - HTTP status codes consistency
 
 ---
 
-*Последнее обновление: 17.10.2025*
+_Последнее обновление: 17.10.2025_

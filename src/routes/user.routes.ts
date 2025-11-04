@@ -22,10 +22,15 @@ router.get('/inventory', authenticate, checkUserBlocked, userController.getInven
 router.get('/history', authenticate, checkUserBlocked, userController.getOpeningsHistory as any);
 
 // Обновить trade URL (требует авторизации)
-router.patch('/trade-url', authenticate, checkUserBlocked, validateTradeUrl, userController.updateTradeUrl as any);
+router.patch(
+  '/trade-url',
+  authenticate,
+  checkUserBlocked,
+  validateTradeUrl,
+  userController.updateTradeUrl as any
+);
 
 // Получить профиль пользователя по ID (ПОСЛЕДНИЙ!)
-// Публичный, но с опциональной авторизацией
-router.get('/:id', optionalAuth, userController.getUser as any);
+router.get('/:id', userController.getUser as any);
 
 export default router;

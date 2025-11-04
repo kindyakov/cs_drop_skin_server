@@ -36,6 +36,7 @@ enum ItemRarity {
 enum ItemStatus {
   OWNED
   WITHDRAWN
+  SOLD
 }
 
 model User {

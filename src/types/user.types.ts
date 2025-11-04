@@ -43,9 +43,9 @@ export interface IUserPublicProfile {
   id: string;
   username: string;
   avatarUrl: string | null;
-  role: UserRole;
   createdAt: Date;
   steamProfileUrl: string | null;
+  vkProfileUrl: string | null;
   favoriteCase: {
     id: string;
     name: string;
@@ -66,15 +66,6 @@ export interface IUserPublicProfile {
   inventory: IUserItem[]; // Максимум 21 предмет
   totalItems: number; // Общее количество предметов в инвентаре
   hasMore: boolean; // Есть ли ещё предметы для подгрузки
-}
-
-/**
- * Расширенный профиль (если пользователь запрашивает СВОЙ профиль с JWT)
- */
-export interface IUserExtendedProfile extends IUserPublicProfile {
-  balance: number; // Дополнительно для своего профиля
-  tradeUrl: string | null; // Дополнительно для своего профиля
-  isBlocked: boolean; // Дополнительно для своего профиля
 }
 
 /**

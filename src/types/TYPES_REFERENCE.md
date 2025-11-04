@@ -1,6 +1,7 @@
 # Types Reference
 
 ## 📋 Описание
+
 Справочник типов проекта с описанием констант и интерфейсов в папке `src/types/`.
 
 ---
@@ -8,6 +9,7 @@
 ## 🏷️ Constants (`constants.ts`)
 
 ### Роли пользователей
+
 - **`UserRoles`** - Константы ролей
   ```typescript
   {
@@ -18,6 +20,7 @@
 - **`UserRole`** - Тип ролей: `'USER' | 'ADMIN'`
 
 ### Типы транзакций
+
 - **`TransactionTypes`** - Константы типов транзакций
   ```typescript
   {
@@ -28,6 +31,7 @@
 - **`TransactionType`** - Типы транзакций: `'DEPOSIT' | 'WITHDRAWAL'`
 
 ### Статусы транзакций
+
 - **`TransactionStatuses`** - Константы статусов транзакций
   ```typescript
   {
@@ -39,6 +43,7 @@
 - **`TransactionStatus`** - Статусы транзакций: `'PENDING' | 'COMPLETED' | 'FAILED'`
 
 ### Редкость предметов
+
 - **`ItemRarities`** - Константы редкости предметов
   ```typescript
   {
@@ -54,14 +59,16 @@
 - **`ItemRarity`** - Типы редкости: `'CONSUMER' | 'INDUSTRIAL' | 'MIL_SPEC' | 'RESTRICTED' | 'CLASSIFIED' | 'COVERT' | 'KNIFE'`
 
 ### Статусы предметов в инвентаре
+
 - **`ItemStatuses`** - Константы статусов предметов
   ```typescript
   {
     OWNED: 'OWNED',
     WITHDRAWN: 'WITHDRAWN',
+    SOLD: 'SOLD',
   } as const
   ```
-- **`ItemStatus`** - Статусы предметов: `'OWNED' | 'WITHDRAWN'`
+- **`ItemStatus`** - Статусы предметов: `'OWNED' | 'WITHDRAWN' | 'SOLD'`
 
 ---
 
@@ -70,6 +77,7 @@
 ### Интерфейсы пользователей
 
 #### **`IUser`** - Полный интерфейс пользователя (из Prisma)
+
 ```typescript
 {
   id: string;
@@ -89,6 +97,7 @@
 ```
 
 #### **`IUserProfile`** - Публичный профиль пользователя
+
 ```typescript
 {
   id: string;
@@ -103,6 +112,7 @@
 ```
 
 #### **`IAuthResponse`** - Ответ авторизации
+
 ```typescript
 {
   token: string;
@@ -111,6 +121,7 @@
 ```
 
 #### **`IUserPublicProfile`** - Профиль для публичного просмотра
+
 ```typescript
 {
   id: string;
@@ -138,16 +149,8 @@
 }
 ```
 
-#### **`IUserExtendedProfile`** - Расширенный профиль (свой профиль)
-```typescript
-extends IUserPublicProfile {
-  balance: number;
-  tradeUrl: string | null;
-  isBlocked: boolean;
-}
-```
-
 #### **`IUpdateTradeUrlInput`** - Обновление trade URL
+
 ```typescript
 {
   tradeUrl: string; // Steam trade URL формата
@@ -155,6 +158,7 @@ extends IUserPublicProfile {
 ```
 
 ### **Примечания:**
+
 - **Favorite Case** - автоматически вычисляется как самый часто открываемый кейс
 - **Best Drop** - автоматически обновляется при открытии кейса с более дорогим предметом
 - **Trade URL** - может быть null, пользователь устанавливает сам
@@ -167,6 +171,7 @@ extends IUserPublicProfile {
 ### Основные интерфейсы
 
 #### **`ICategory`** - Базовая категория
+
 ```typescript
 {
   id: string;
@@ -182,6 +187,7 @@ extends IUserPublicProfile {
 ```
 
 #### **`ICategoryWithCount`** - Категория с количеством кейсов
+
 ```typescript
 extends ICategory {
   _count: {
@@ -191,6 +197,7 @@ extends ICategory {
 ```
 
 #### **`ICategoryWithCases`** - Категория с кейсами
+
 ```typescript
 extends ICategory {
   cases: Array<{
@@ -207,6 +214,7 @@ extends ICategory {
 ### Admin интерфейсы
 
 #### **`ICreateCategoryInput`** - Создание категории
+
 ```typescript
 {
   name: string;
@@ -218,6 +226,7 @@ extends ICategory {
 ```
 
 #### **`IUpdateCategoryInput`** - Обновление категории
+
 ```typescript
 {
   name?: string;
@@ -229,6 +238,7 @@ extends ICategory {
 ```
 
 #### **`IAssignCasesToCategoryInput`** - Назначение кейсов
+
 ```typescript
 {
   caseIds: string[]; // массив ID кейсов
@@ -240,7 +250,9 @@ extends ICategory {
 ## 🎮 Case Types (`case.types.ts`)
 
 ### Кейсы
+
 - **`ICase`** - Базовый интерфейс кейса
+
   ```typescript
   {
     id: string;
@@ -257,6 +269,7 @@ extends ICategory {
   ```
 
 - **`ICaseWithItems`** - Кейс с предметами
+
   ```typescript
   extends ICase {
     items: ICaseItemWithDetails[];
@@ -264,6 +277,7 @@ extends ICategory {
   ```
 
 - **`ICaseItemWithDetails`** - Связь кейс-предмет с деталями
+
   ```typescript
   {
     id: string;
@@ -288,7 +302,9 @@ extends ICategory {
 ## 🗃️ Item Types (`item.types.ts`)
 
 ### Предметы
+
 - **`IItem`** - Базовый интерфейс предмета
+
   ```typescript
   {
     id: string;
@@ -319,7 +335,9 @@ extends ICategory {
 ## 🎯 Case Opening Types (`caseOpening.types.ts`)
 
 ### Открытие кейсов
+
 - **`ICaseOpening`** - История открытия кейсов
+
   ```typescript
   {
     id: string;
@@ -331,6 +349,7 @@ extends ICategory {
   ```
 
 - **`ICaseOpeningResult`** - Результат открытия кейса
+
   ```typescript
   {
     success: boolean;
@@ -361,6 +380,7 @@ extends ICategory {
 ### Платежные константы
 
 #### **Провайдеры платежей**
+
 - **`PaymentProviders`** - Константы провайдеров
   ```typescript
   {
@@ -372,6 +392,7 @@ extends ICategory {
 - **`PaymentProvider`** - Тип провайдера: `'YOOKASSA'`
 
 #### **Методы оплаты**
+
 - **`PaymentMethods`** - Константы методов оплаты
   ```typescript
   {
@@ -386,6 +407,7 @@ extends ICategory {
 - **`PaymentMethod`** - Тип метода: `'BANK_CARD' | 'YOO_MONEY' | 'SBERBANK' | 'QIWI' | 'WEBMONEY' | 'SBP'`
 
 #### **Статусы платежей**
+
 - **`PaymentStatuses`** - Константы статусов
   ```typescript
   {
@@ -400,6 +422,7 @@ extends ICategory {
 - **`PaymentStatus`** - Тип статуса: `'PENDING' | 'PROCESSING' | 'SUCCEEDED' | 'CANCELED' | 'REFUNDED' | 'EXPIRED'`
 
 #### **Валюты**
+
 - **`Currencies`** - Константы валют
   ```typescript
   {
@@ -413,6 +436,7 @@ extends ICategory {
 ### Основные интерфейсы платежей
 
 #### **`IPayment`** - Базовый интерфейс платежа
+
 ```typescript
 {
   id: string;
@@ -432,6 +456,7 @@ extends ICategory {
 ```
 
 #### **`ICreatePaymentRequest`** - Запрос на создание платежа
+
 ```typescript
 {
   amount: number; // в копейках
@@ -443,6 +468,7 @@ extends ICategory {
 ```
 
 #### **`ICreatePaymentResponse`** - Ответ при создании платежа
+
 ```typescript
 {
   success: boolean;
@@ -453,6 +479,7 @@ extends ICategory {
 ```
 
 #### **`ITopupRequest`** - Запрос на пополнение баланса
+
 ```typescript
 {
   amount: number; // в копейках
@@ -462,6 +489,7 @@ extends ICategory {
 ```
 
 #### **`IBalanceTransaction`** - Транзакция баланса
+
 ```typescript
 {
   id: string;
@@ -478,6 +506,7 @@ extends ICategory {
 ```
 
 #### **`IPaymentFilters`** - Фильтры поиска платежей
+
 ```typescript
 {
   userId?: string;
@@ -498,6 +527,7 @@ extends ICategory {
 ### Admin Case Management
 
 #### **`ICreateCaseInput`** - Создание кейса
+
 ```typescript
 {
   name: string;
@@ -509,6 +539,7 @@ extends ICategory {
 ```
 
 #### **`IUpdateCaseInput`** - Обновление кейса
+
 ```typescript
 {
   name?: string;
@@ -520,6 +551,7 @@ extends ICategory {
 ```
 
 #### **`IAddItemToCaseInput`** - Добавление предмета в кейс
+
 ```typescript
 {
   itemId: string;
@@ -528,6 +560,7 @@ extends ICategory {
 ```
 
 #### **`IAddItemsToCaseInput`** - Массив предметов для кейса
+
 ```typescript
 {
   items: IAddItemToCaseInput[];
@@ -537,6 +570,7 @@ extends ICategory {
 ### Admin User Management
 
 #### **`IGetUsersFilters`** - Фильтры списка пользователей
+
 ```typescript
 {
   role?: 'USER' | 'ADMIN';
@@ -547,6 +581,7 @@ extends ICategory {
 ```
 
 #### **`IUpdateUserBalanceInput`** - Обновление баланса
+
 ```typescript
 {
   amount: number; // в копейках, может быть отрицательным
@@ -557,32 +592,34 @@ extends ICategory {
 ### Admin Statistics
 
 #### **`IAdminDashboardStats`** - Статистика дашборда
+
 ```typescript
 {
   users: {
     total: number;
     newToday: number;
     newThisWeek: number;
-  };
+  }
   revenue: {
     total: number;
     today: number;
     thisWeek: number;
     thisMonth: number;
-  };
+  }
   openings: {
     total: number;
     today: number;
     thisWeek: number;
-  };
+  }
   cases: {
     total: number;
     active: number;
-  };
+  }
 }
 ```
 
 #### **`IPopularCase`** - Популярный кейс
+
 ```typescript
 {
   id: string;
@@ -594,6 +631,7 @@ extends ICategory {
 ```
 
 #### **`IRecentTransaction`** - Недавняя транзакция
+
 ```typescript
 {
   id: string;
@@ -611,6 +649,7 @@ extends ICategory {
 ## 🔌 Express Types (`express.d.ts`)
 
 ### Расширение Request
+
 - **`Express.Request.user`** - Добавлено свойство для аутентифицированного пользователя
   ```typescript
   {
@@ -626,6 +665,7 @@ extends ICategory {
 ### WebSocket события и типы
 
 #### **`ServerToClientEvents`** - События от сервера к клиенту
+
 ```typescript
 {
   'case-opened': (event: ILiveFeedEvent) => void;
@@ -635,6 +675,7 @@ extends ICategory {
 ```
 
 #### **`ClientToServerEvents`** - События от клиента к серверу
+
 ```typescript
 {
   'join-feed': () => void;
@@ -643,6 +684,7 @@ extends ICategory {
 ```
 
 #### **`InterServerEvents`** - Межсерверные события
+
 ```typescript
 {
   ping: () => void;
@@ -650,6 +692,7 @@ extends ICategory {
 ```
 
 #### **`SocketData`** - Данные сокета
+
 ```typescript
 {
   userId?: string;
@@ -660,6 +703,7 @@ extends ICategory {
 ### События Live-Feed
 
 #### **'case-opened'** - Событие открытия кейса
+
 - Эмитится при успешном открытии кейса
 - Payload: ILiveFeedEvent
 - Room: 'live-feed'
@@ -674,22 +718,45 @@ extends ICategory {
 import * as Types from './index.js';
 
 // Константы и типы
-import { UserRoles, UserRole, ItemRarities, ItemRarity, ItemStatuses, ItemStatus } from './constants.js';
+import {
+  UserRoles,
+  UserRole,
+  ItemRarities,
+  ItemRarity,
+  ItemStatuses,
+  ItemStatus,
+} from './constants.js';
 import { IUser, IUserProfile, IAuthResponse } from './user.types.js';
 import { ICase, ICaseWithItems, ICaseItemWithDetails } from './case.types.js';
 import { IItem, IUserItem } from './item.types.js';
 import { ICaseOpening, ICaseOpeningResult, ILiveFeedEvent } from './caseOpening.types.js';
-import { 
-  PaymentProviders, PaymentProvider, PaymentMethods, PaymentMethod, 
-  PaymentStatuses, PaymentStatus, Currencies, Currency,
-  IPayment, ICreatePaymentRequest, ICreatePaymentResponse,
-  ITopupRequest, IBalanceTransaction, IPaymentFilters 
+import {
+  PaymentProviders,
+  PaymentProvider,
+  PaymentMethods,
+  PaymentMethod,
+  PaymentStatuses,
+  PaymentStatus,
+  Currencies,
+  Currency,
+  IPayment,
+  ICreatePaymentRequest,
+  ICreatePaymentResponse,
+  ITopupRequest,
+  IBalanceTransaction,
+  IPaymentFilters,
 } from './payment.types.js';
 // Admin types
 import {
-  ICreateCaseInput, IUpdateCaseInput, IAddItemToCaseInput, IAddItemsToCaseInput,
-  IGetUsersFilters, IUpdateUserBalanceInput,
-  IAdminDashboardStats, IPopularCase, IRecentTransaction
+  ICreateCaseInput,
+  IUpdateCaseInput,
+  IAddItemToCaseInput,
+  IAddItemsToCaseInput,
+  IGetUsersFilters,
+  IUpdateUserBalanceInput,
+  IAdminDashboardStats,
+  IPopularCase,
+  IRecentTransaction,
 } from './admin.types.js';
 // Socket types
 import {
@@ -701,11 +768,21 @@ import {
 
 // В коде
 const userRole: UserRole = UserRoles.ADMIN;
-const user: IUser = { /* ... */ };
-const caseItem: ICase = { /* ... */ };
-const item: IItem = { /* ... */ };
-const caseOpening: ICaseOpening = { /* ... */ };
-const payment: IPayment = { /* ... */ };
+const user: IUser = {
+  /* ... */
+};
+const caseItem: ICase = {
+  /* ... */
+};
+const item: IItem = {
+  /* ... */
+};
+const caseOpening: ICaseOpening = {
+  /* ... */
+};
+const payment: IPayment = {
+  /* ... */
+};
 const paymentStatus: PaymentStatus = PaymentStatuses.PENDING;
 const paymentMethod: PaymentMethod = PaymentMethods.BANK_CARD;
 ```
@@ -717,6 +794,7 @@ const paymentMethod: PaymentMethod = PaymentMethods.BANK_CARD;
 ### Admin Case Management
 
 #### **`ICreateCaseInput`** - Создание кейса
+
 ```typescript
 {
   name: string;
@@ -728,6 +806,7 @@ const paymentMethod: PaymentMethod = PaymentMethods.BANK_CARD;
 ```
 
 #### **`IUpdateCaseInput`** - Обновление кейса
+
 ```typescript
 {
   name?: string;
@@ -739,6 +818,7 @@ const paymentMethod: PaymentMethod = PaymentMethods.BANK_CARD;
 ```
 
 #### **`IAddItemToCaseInput`** - Добавление предмета в кейс
+
 ```typescript
 {
   itemId: string;
@@ -747,6 +827,7 @@ const paymentMethod: PaymentMethod = PaymentMethods.BANK_CARD;
 ```
 
 #### **`IAddItemsToCaseInput`** - Массив предметов для кейса
+
 ```typescript
 {
   items: IAddItemToCaseInput[];
@@ -756,6 +837,7 @@ const paymentMethod: PaymentMethod = PaymentMethods.BANK_CARD;
 ### Admin User Management
 
 #### **`IGetUsersFilters`** - Фильтры списка пользователей
+
 ```typescript
 {
   role?: 'USER' | 'ADMIN';
@@ -766,6 +848,7 @@ const paymentMethod: PaymentMethod = PaymentMethods.BANK_CARD;
 ```
 
 #### **`IUpdateUserBalanceInput`** - Обновление баланса
+
 ```typescript
 {
   amount: number; // в копейках, может быть отрицательным
@@ -776,32 +859,34 @@ const paymentMethod: PaymentMethod = PaymentMethods.BANK_CARD;
 ### Admin Statistics
 
 #### **`IAdminDashboardStats`** - Статистика дашборда
+
 ```typescript
 {
   users: {
     total: number;
     newToday: number;
     newThisWeek: number;
-  };
+  }
   revenue: {
     total: number;
     today: number;
     thisWeek: number;
     thisMonth: number;
-  };
+  }
   openings: {
     total: number;
     today: number;
     thisWeek: number;
-  };
+  }
   cases: {
     total: number;
     active: number;
-  };
+  }
 }
 ```
 
 #### **`IPopularCase`** - Популярный кейс
+
 ```typescript
 {
   id: string;
@@ -813,6 +898,7 @@ const paymentMethod: PaymentMethod = PaymentMethods.BANK_CARD;
 ```
 
 #### **`IRecentTransaction`** - Недавняя транзакция
+
 ```typescript
 {
   id: string;
