@@ -1,11 +1,6 @@
 import { Router } from 'express';
 import * as userController from '../controllers/user.controller.js';
-import {
-  authenticate,
-  checkUserBlocked,
-  optionalAuth,
-  validateTradeUrl,
-} from '../middleware/index.js';
+import { authenticate, checkUserBlocked, validateTradeUrl } from '../middleware/index.js';
 
 const router = Router();
 
