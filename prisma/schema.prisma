@@ -23,6 +23,11 @@ enum TransactionStatus {
   FAILED
 }
 
+enum PaymentProvider {
+  EXNODE
+  YOOKASSA
+}
+
 enum ItemRarity {
   CONSUMER
   INDUSTRIAL
@@ -197,20 +202,25 @@ model CaseOpening {
 }
 
 model Transaction {
-  id          String            @id @default(cuid())
-  userId      String
-  amount      Int
-  type        TransactionType
-  status      TransactionStatus @default(PENDING)
-  paymentId   String?           @unique
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  id           String            @id @default(cuid())
+  userId       String
+  amount       Int
+  type         TransactionType
+  status       TransactionStatus @default(PENDING)
+  paymentId    String?           @unique
+  provider     PaymentProvider   @default(EXNODE)
+  trackerId    String?           @unique
+  cryptoAmount Decimal?          @db.Decimal(18, 8)
+  fiatCurrency String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
   @@index([paymentId])
+  @@index([trackerId])
   @@index([createdAt])
   @@map("transactions")
 }

@@ -4,6 +4,7 @@ import caseRoutes from './case.routes.js';
 import caseOpeningRoutes from './caseOpening.routes.js';
 import userRoutes from './user.routes.js';
 import paymentRoutes from './payment.routes.js';
+import exnodeRoutes from './exnode.routes.js';
 import categoryRoutes from './category.routes.js';
 import adminRoutes from './admin/index.js';
 
@@ -47,6 +48,11 @@ router.use('/v1/user', userRoutes);
 // PAYMENTS ROUTES - V1
 // ==============================================
 router.use('/v1/payments', paymentRoutes);
+
+// ==============================================
+// EXNODE CRYPTO PAYMENTS ROUTES - V1
+// ==============================================
+router.use('/v1/payments/exnode', exnodeRoutes);
 
 // ==============================================
 // ADMIN ROUTES - V1

@@ -10,7 +10,7 @@ passport.use(
   new SteamStrategy(
     {
       returnURL: config.steam.returnUrl,
-      realm: `http://localhost:5000`, // https://cs-drop-skin-server.onrender.com
+      realm: config.server.url,
       apiKey: config.steam.apiKey,
     },
     async (identifier, profile, done) => {

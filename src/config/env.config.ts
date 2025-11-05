@@ -99,6 +99,12 @@ const envSchema = z.object({
     })
     .url()
     .default('http://localhost:3000'),
+  SERVER_URL: z
+    .string({
+      required_error: 'SERVER_URL is required',
+    })
+    .url()
+    .default('http://localhost:5000'),
 
   // ================================
   // RATE LIMITING
@@ -124,6 +130,25 @@ const envSchema = z.object({
       message: 'Cache file must have .json extension',
     })
     .default('skins-cache.json'),
+
+  // ================================
+  // EXNODE CRYPTO PAYMENT GATEWAY
+  // ================================
+  EXNODE_PRIVATE_KEY: z
+    .string({
+      required_error: 'EXNODE_PRIVATE_KEY is required for Exnode payment gateway',
+    })
+    .min(1),
+  EXNODE_PUBLIC_KEY: z
+    .string({
+      required_error: 'EXNODE_PUBLIC_KEY is required for Exnode payment gateway',
+    })
+    .min(1),
+  EXNODE_MERCHANT_ID: z.string().optional(),
+  EXNODE_API_URL: z
+    .string()
+    .url({ message: 'EXNODE_API_URL must be a valid URL' })
+    .default('https://my.exnode.io'),
 });
 
 // Validate and parse environment variables
@@ -178,6 +203,14 @@ export const config = {
     secretKey: validatedEnv.YOOKASSA_SECRET_KEY,
   },
 
+  // Exnode crypto payments
+  exnode: {
+    privateKey: validatedEnv.EXNODE_PRIVATE_KEY,
+    publicKey: validatedEnv.EXNODE_PUBLIC_KEY,
+    merchantId: validatedEnv.EXNODE_MERCHANT_ID,
+    apiUrl: validatedEnv.EXNODE_API_URL,
+  },
+
   // Security & middleware
   cors: {
     origin: validatedEnv.CORS_ORIGIN,
@@ -186,6 +219,11 @@ export const config = {
   // Frontend
   frontend: {
     url: validatedEnv.FRONTEND_URL,
+  },
+
+  // Server
+  server: {
+    url: validatedEnv.SERVER_URL,
   },
 
   // Rate limiting
