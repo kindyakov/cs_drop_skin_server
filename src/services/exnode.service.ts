@@ -42,17 +42,20 @@ const DEFAULT_CRYPTO_TOKEN: ExnodeToken = ExnodeToken.USDTTRC;
 /**
  * Генерация HMAC-SHA512 подписи для запросов к Exnode API
  * @param timestamp - Unix timestamp
- * @param body - Тело запроса (объект)
+ * @param body - Тело запроса (объект или null для GET-запросов)
  * @returns Hex-строка подписи
  */
-function generateSignature(timestamp: number, body: Record<string, any>): string {
+function generateSignature(timestamp: number, body: Record<string, any> | null): string {
   try {
-    const message = timestamp.toString() + JSON.stringify(body);
+    // Для GET-запросов используем пустую строку, для POST - JSON
+    const bodyString = body === null ? '' : JSON.stringify(body);
+    const message = timestamp.toString() + bodyString;
     const signature = crypto.createHmac('sha512', EXNODE_PRIVATE_KEY).update(message).digest('hex');
 
     logger.debug('Сгенерированная подпись Exnode', {
       timestamp,
       messageLength: message.length,
+      isGetRequest: body === null,
     });
 
     return signature;
@@ -64,10 +67,10 @@ function generateSignature(timestamp: number, body: Record<string, any>): string
 
 /**
  * Создание заголовков для API запроса к Exnode
- * @param body - Тело запроса
+ * @param body - Тело запроса (или null для GET-запросов)
  * @returns Заголовки аутентификации
  */
-function createApiHeaders(body: Record<string, any>): IExnodeApiHeaders {
+function createApiHeaders(body: Record<string, any> | null): IExnodeApiHeaders {
   const timestamp = Math.floor(Date.now() / 1000);
   const signature = generateSignature(timestamp, body);
 
@@ -194,20 +197,26 @@ export async function createPayment(
 
     const { payment_url, tracker_id } = orderData;
 
-    // 11. Обновление транзакции с tracker_id
+    // 11. Рассчитываем время истечения (12 часов с момента создания)
+    const EXNODE_ORDER_TIMEOUT_HOURS = 12;
+    const expiresAt = new Date(Date.now() + EXNODE_ORDER_TIMEOUT_HOURS * 60 * 60 * 1000);
+
+    // 12. Обновление транзакции с tracker_id и expiresAt
     await prisma.transaction.update({
       where: { id: transaction.id },
       data: {
         trackerId: tracker_id,
+        expiresAt: expiresAt,
       },
     });
 
     logger.info('Exnode заказ успешно создан', {
       transactionId: transaction.id,
       trackerId: tracker_id,
+      expiresAt: expiresAt.toISOString(),
     });
 
-    // 12. Возврат результата
+    // 13. Возврат результата
     return {
       success: true,
       paymentUrl: payment_url,
@@ -257,9 +266,8 @@ export async function createPayment(
  */
 export async function getOrderInfo(trackerId: string): Promise<IExnodeGetOrderResponse> {
   try {
-    // Пустое тело для GET запроса
-    const requestBody = {};
-    const headers = createApiHeaders(requestBody);
+    // Для GET запроса используем null (пустая строка в подписи)
+    const headers = createApiHeaders(null);
 
     logger.info('Fetching Exnode order info', { trackerId });
 

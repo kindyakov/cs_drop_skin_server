@@ -212,6 +212,7 @@ model Transaction {
   trackerId    String?           @unique
   cryptoAmount Decimal?          @db.Decimal(18, 8)
   fiatCurrency String?
+  expiresAt    DateTime?
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
 
@@ -221,6 +222,7 @@ model Transaction {
   @@index([status])
   @@index([paymentId])
   @@index([trackerId])
+  @@index([expiresAt])
   @@index([createdAt])
   @@map("transactions")
 }

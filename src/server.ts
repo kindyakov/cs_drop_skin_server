@@ -6,6 +6,7 @@ import { initializeSocket } from './config/socket.config.js';
 import { logger } from './middleware/logger.middleware.js';
 import { startItemsSyncJob } from './jobs/syncItems.job.js';
 import { startUpdateItemPricesJob } from './jobs/updateItemPrices.job.js';
+import { startCleanupExpiredExnodeTransactionsJob } from './jobs/cleanupExpiredExnodeTransactions.job.js';
 import { skinsCache } from './utils/skinsCache.util.js';
 
 const PORT = config.port;
@@ -33,6 +34,9 @@ const startServer = async () => {
 
     // Запуск cron job для обновления цен скинов (каждый день в 04:00)
     startUpdateItemPricesJob();
+
+    // Запуск cron job для очистки истекших Exnode транзакций (каждый час)
+    startCleanupExpiredExnodeTransactionsJob();
 
     // Запуск сервера
     httpServer.listen(PORT, () => {

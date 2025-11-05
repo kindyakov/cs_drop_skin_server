@@ -174,9 +174,7 @@ export const getPopularCases = async (limit: number = 10): Promise<IPopularCase[
 /**
  * Получить недавние транзакции
  */
-export const getRecentTransactions = async (
-  limit: number = 20
-): Promise<IRecentTransaction[]> => {
+export const getRecentTransactions = async (limit: number = 20): Promise<IRecentTransaction[]> => {
   try {
     const transactions = await prisma.transaction.findMany({
       take: limit,
@@ -199,6 +197,10 @@ export const getRecentTransactions = async (
       amount: t.amount,
       status: t.status as 'PENDING' | 'COMPLETED' | 'FAILED',
       createdAt: t.createdAt,
+      provider: t.provider as 'EXNODE' | 'YOOKASSA',
+      cryptoAmount: t.cryptoAmount,
+      fiatCurrency: t.fiatCurrency,
+      expiresAt: t.expiresAt,
     }));
 
     logger.info('Недавние транзакции получены', { count: recentTransactions.length });
