@@ -2,12 +2,13 @@ import http from 'http';
 import app from './app.js';
 import { config } from './config/env.config.js';
 import { prisma } from './config/database.js';
-import { initializeSocket } from './config/socket.config.js';
+import { initializeSocket, setInitialCache } from './config/socket.config.js';
 import { logger } from './middleware/logger.middleware.js';
 import { startItemsSyncJob } from './jobs/syncItems.job.js';
 import { startUpdateItemPricesJob } from './jobs/updateItemPrices.job.js';
 import { startCleanupExpiredExnodeTransactionsJob } from './jobs/cleanupExpiredExnodeTransactions.job.js';
 import { skinsCache } from './utils/skinsCache.util.js';
+import { getRecentOpenings } from './services/caseOpening.service.js';
 
 const PORT = config.port;
 
@@ -28,6 +29,15 @@ const startServer = async () => {
 
     // Загрузить кеш скинов в память (индексирование для быстрого поиска)
     await skinsCache.load();
+
+    // Загрузить последние 20 открытий кейсов в кеш для live-feed
+    try {
+      const recentOpenings = await getRecentOpenings(20);
+      setInitialCache(recentOpenings);
+      logger.info('Кеш последних открытий загружен', { count: recentOpenings.length });
+    } catch (error) {
+      logger.warn('Не удалось загрузить начальный кеш открытий', { error });
+    }
 
     // Запуск cron job для синхронизации скинов (каждый день в 03:00)
     startItemsSyncJob();

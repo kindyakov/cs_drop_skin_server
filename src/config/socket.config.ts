@@ -2,8 +2,12 @@ import { Server as HttpServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { config } from './env.config.js';
 import { logger } from '../middleware/logger.middleware.js';
+import type { ILiveFeedEvent } from '../types/caseOpening.types.js';
 
 let io: SocketIOServer | null = null;
+
+// Кеш последних 20 открытий кейсов в памяти
+let recentOpeningsCache: ILiveFeedEvent[] = [];
 
 /**
  * Инициализация Socket.io сервера
@@ -34,6 +38,11 @@ export const initializeSocket = (httpServer: HttpServer): SocketIOServer => {
 
     // Отправляем текущее количество пользователей новому клиенту
     broadcastUserCount();
+
+    // Обработчик запроса начальных данных (request-response pattern)
+    socket.on('request-initial-feed', () => {
+      socket.emit('initial-feed', recentOpeningsCache);
+    });
 
     // Обработка отключения
     socket.on('disconnect', (reason) => {
@@ -76,19 +85,18 @@ export const getSocketIO = (): SocketIOServer => {
 /**
  * Эмитировать событие открытия кейса в live-feed
  */
-export const emitCaseOpening = (event: any): void => {
+export const emitCaseOpening = (event: ILiveFeedEvent): void => {
   try {
     if (!io) {
       logger.warn('Socket.io не инициализирован, событие не отправлено');
       return;
     }
 
-    io.to('live-feed').emit('case-opened', event);
+    // Добавляем событие в кеш
+    addToRecentOpenings(event);
 
-    logger.debug('Событие открытия кейса отправлено', {
-      eventId: event.id,
-      caseName: event.caseName,
-    });
+    // Отправляем всем подключенным клиентам
+    io.to('live-feed').emit('case-opened', event);
   } catch (error) {
     logger.error('Ошибка эмиссии события открытия кейса', { error });
   }
@@ -108,4 +116,25 @@ const broadcastUserCount = (): void => {
   } catch (error) {
     logger.error('Ошибка отправки количества пользователей', { error });
   }
+};
+
+/**
+ * Добавить событие в кеш последних открытий (максимум 20)
+ */
+const addToRecentOpenings = (event: ILiveFeedEvent): void => {
+  // Добавляем в начало массива
+  recentOpeningsCache.unshift(event);
+
+  // Ограничиваем размер до 20 элементов
+  if (recentOpeningsCache.length > 20) {
+    recentOpeningsCache = recentOpeningsCache.slice(0, 20);
+  }
+};
+
+/**
+ * Установить начальные данные в кеш
+ */
+export const setInitialCache = (events: ILiveFeedEvent[]): void => {
+  recentOpeningsCache = events.slice(0, 20);
+  logger.info('Кеш инициализирован', { cacheSize: recentOpeningsCache.length });
 };

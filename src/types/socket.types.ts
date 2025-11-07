@@ -13,6 +13,7 @@ import type { ILiveFeedEvent } from './caseOpening.types.js';
  */
 export interface ServerToClientEvents {
   'case-opened': (event: ILiveFeedEvent) => void;
+  'initial-feed': (events: ILiveFeedEvent[]) => void;
   'user-count': (count: number) => void;
   'error': (message: string) => void;
 }
@@ -23,6 +24,7 @@ export interface ServerToClientEvents {
 export interface ClientToServerEvents {
   'join-feed': () => void;
   'leave-feed': () => void;
+  'request-initial-feed': () => void;
 }
 
 /**
