@@ -19,12 +19,16 @@ export interface ICaseOpeningResult {
 // События для live-ленты
 export interface ILiveFeedEvent {
   id: string;
+  userId: string;
   username: string;
   userAvatar: string | null;
+  skinName: string | null;
+  weaponName: string | null;
+  imageUrl: string;
+  rarity: string;
+  displayName: string;
   caseName: string;
-  caseImage: string;
-  itemName: string;
-  itemImage: string;
-  itemRarity: string;
+  caseSlug: string;
+  caseImageUrl: string;
   openedAt: Date;
 }

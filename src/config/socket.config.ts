@@ -32,12 +32,17 @@ export const initializeSocket = (httpServer: HttpServer): SocketIOServer => {
     // Подключение к комнате live-feed
     socket.join('live-feed');
 
+    // Отправляем текущее количество пользователей новому клиенту
+    broadcastUserCount();
+
     // Обработка отключения
     socket.on('disconnect', (reason) => {
       logger.info('WebSocket клиент отключился', {
         socketId: socket.id,
         reason,
       });
+      // Отправляем обновленное количество после отключения
+      broadcastUserCount();
     });
 
     // Обработка ошибок
@@ -48,6 +53,11 @@ export const initializeSocket = (httpServer: HttpServer): SocketIOServer => {
       });
     });
   });
+
+  // Периодическая отправка количества онлайн пользователей (каждые 5 секунд)
+  setInterval(() => {
+    broadcastUserCount();
+  }, 5000);
 
   logger.info('Socket.io сервер инициализирован');
   return io;
@@ -81,5 +91,21 @@ export const emitCaseOpening = (event: any): void => {
     });
   } catch (error) {
     logger.error('Ошибка эмиссии события открытия кейса', { error });
+  }
+};
+
+/**
+ * Отправить количество подключенных пользователей всем клиентам
+ */
+const broadcastUserCount = (): void => {
+  try {
+    if (!io) {
+      return;
+    }
+
+    const userCount = io.sockets.sockets.size;
+    io.emit('user-count', userCount);
+  } catch (error) {
+    logger.error('Ошибка отправки количества пользователей', { error });
   }
 };

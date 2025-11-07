@@ -113,13 +113,17 @@ export const openCase = async (
   try {
     emitCaseOpening({
       id: result.newOpening.id,
+      userId: result.user.id,
       username: result.user.username,
       userAvatar: result.user.avatarUrl,
+      skinName: result.wonItem.skinName,
+      weaponName: result.wonItem.weaponName,
+      imageUrl: result.wonItem.imageUrl,
+      rarity: result.wonItem.rarity,
+      displayName: result.wonItem.displayName,
       caseName: result.caseData.name,
-      caseImage: result.caseData.imageUrl,
-      itemName: result.wonItem.displayName,
-      itemImage: result.wonItem.imageUrl,
-      itemRarity: result.wonItem.rarity,
+      caseSlug: result.caseData.slug,
+      caseImageUrl: result.caseData.imageUrl,
       openedAt: result.newOpening.openedAt,
     });
   } catch (emitError) {
@@ -162,21 +166,33 @@ export const getRecentOpenings = async (limit = 20): Promise<ILiveFeedEvent[]> =
     take: limit,
     orderBy: { openedAt: 'desc' },
     include: {
-      user: { select: { username: true, avatarUrl: true } },
-      case: { select: { name: true, imageUrl: true } },
-      item: { select: { displayName: true, imageUrl: true, rarity: true } },
+      user: { select: { id: true, username: true, avatarUrl: true } },
+      case: { select: { name: true, slug: true, imageUrl: true } },
+      item: {
+        select: {
+          displayName: true,
+          weaponName: true,
+          skinName: true,
+          imageUrl: true,
+          rarity: true
+        }
+      },
     },
   });
 
   return openings.map(opening => ({
     id: opening.id,
+    userId: opening.user.id,
     username: opening.user.username,
     userAvatar: opening.user.avatarUrl,
+    skinName: opening.item.skinName,
+    weaponName: opening.item.weaponName,
+    imageUrl: opening.item.imageUrl,
+    rarity: opening.item.rarity,
+    displayName: opening.item.displayName,
     caseName: opening.case.name,
-    caseImage: opening.case.imageUrl,
-    itemName: opening.item.displayName,
-    itemImage: opening.item.imageUrl,
-    itemRarity: opening.item.rarity,
+    caseSlug: opening.case.slug,
+    caseImageUrl: opening.case.imageUrl,
     openedAt: opening.openedAt,
   }));
 };
