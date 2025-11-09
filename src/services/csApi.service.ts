@@ -110,26 +110,26 @@ class CsApiService {
       });
 
       if (!Array.isArray(response.data)) {
-        throw new Error('Invalid response format: expected array of skins');
+        throw new Error('Неверный формат ответа: ожидаемый набор скинов');
       }
 
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.code === 'ECONNABORTED') {
-          throw new Error(`API request timeout after ${HTTP_TIMEOUT}ms`);
+          throw new Error(`Время ожидания запроса API после ${HTTP_TIMEOUT}ms`);
         }
         if (error.response) {
           throw new Error(
-            `API request failed with status ${error.response.status}: ${error.response.statusText}`
+            `Ошибка запроса API со статусом ${error.response.status}: ${error.response.statusText}`
           );
         }
         if (error.request) {
-          throw new Error('API request failed: No response received');
+          throw new Error('Ошибка запроса API: ответ не получен');
         }
       }
       throw new Error(
-        `Failed to fetch skins from API: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Не удалось получить скины из API: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }
@@ -145,7 +145,7 @@ class CsApiService {
       await fs.access(CACHE_DIR);
     } catch {
       await fs.mkdir(CACHE_DIR, { recursive: true });
-      logger.info('Cache directory created', { path: CACHE_DIR });
+      logger.info('Созданный каталог кэша', { path: CACHE_DIR });
     }
   }
 

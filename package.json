@@ -17,7 +17,6 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "sync-skins": "tsx sync-skins.ts",
     "sync-skins:info": "tsx sync-skins.ts info",
-    "railway:deploy": "npm run build && railway up",
     "db:export": "tsx scripts/export-data.ts",
     "db:import": "tsx scripts/import-data.ts"
   },
