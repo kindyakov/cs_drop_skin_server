@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Transaction } from '@prisma/client';
 import type {
   ICreatePaymentRequest,
   IYooKassaCreatePaymentRequest,
@@ -9,7 +9,7 @@ import type {
 } from '../types/payment.types.js';
 import { config } from '../config/env.config.js';
 import { logger } from '../middleware/logger.middleware.js';
-import { ValidationError } from '../utils/index.js';
+import { ValidationError, NotFoundError, ForbiddenError } from '../utils/index.js';
 
 const prisma = new PrismaClient();
 
@@ -147,6 +147,43 @@ export const processWebhook = async (webhook: IYooKassaWebhook): Promise<void> =
     }
   } catch (error) {
     logger.error('Ошибка обработки webhook', { error });
+    throw error;
+  }
+};
+
+/**
+ * Получить транзакцию по ID
+ * @param userId - ID пользователя
+ * @param transactionId - ID транзакции
+ * @returns Транзакция
+ */
+export const getTransactionById = async (
+  userId: string,
+  transactionId: string
+): Promise<Transaction> => {
+  try {
+    const transaction = await prisma.transaction.findUnique({
+      where: { id: transactionId },
+    });
+
+    if (!transaction) {
+      throw new NotFoundError('Транзакция не найдена TRANSACTION_NOT_FOUND');
+    }
+
+    // Проверка прав доступа
+    if (transaction.userId !== userId) {
+      throw new ForbiddenError('Нет доступа к этой транзакции');
+    }
+
+    logger.info('Транзакция получена', { transactionId, userId });
+
+    return transaction;
+  } catch (error) {
+    // Пробрасываем кастомные ошибки (NotFoundError, ForbiddenError)
+    if (error instanceof NotFoundError || error instanceof ForbiddenError) {
+      throw error;
+    }
+    logger.error('Ошибка получения транзакции', { error, transactionId, userId });
     throw error;
   }
 };

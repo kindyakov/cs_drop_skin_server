@@ -27,4 +27,11 @@ router.get(
   paymentController.getUserTransactions as RequestHandler
 );
 
+// Получить транзакцию по ID (защищено)
+router.get(
+  '/:id',
+  authenticate,
+  paymentController.getTransaction as RequestHandler
+);
+
 export default router;

@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { z } from 'zod';
 import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
 import * as paymentService from '../services/payment.service.js';
-import { successResponse } from '../utils/index.js';
+import { successResponse, ValidationError } from '../utils/index.js';
 import type { IYooKassaWebhook } from '../types/payment.types.js';
 import { config } from '../config/env.config.js';
 
@@ -59,6 +60,34 @@ export const getUserTransactions = async (
 
     successResponse(res, transactions);
   } catch (error) {
+    next(error);
+  }
+};
+
+// Схема валидации для ID транзакции
+const GetTransactionSchema = z.object({
+  id: z.string().cuid('Неверный формат ID транзакции'),
+});
+
+/**
+ * Получить транзакцию по ID
+ */
+export const getTransaction = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user!.userId;
+    const { id } = GetTransactionSchema.parse(req.params);
+
+    const transaction = await paymentService.getTransactionById(userId, id);
+
+    successResponse(res, transaction);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(new ValidationError(error.errors.map((e) => e.message).join(', ')));
+    }
     next(error);
   }
 };

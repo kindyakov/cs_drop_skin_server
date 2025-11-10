@@ -160,7 +160,7 @@ export async function createPayment(
       fiat_currency: currency as ExnodeFiatCurrency,
       client_transaction_id: clientTransactionId,
       payform: true, // Используем готовую форму оплаты Exnode
-      redirect_url: `${config.frontend.url}/payment/success`,
+      redirect_url: `${config.frontend.url}/payment/success?transactionId=${transaction.id}`,
       auto_redirect: true,
       strict_currency: true,
       call_back_url: callbackUrl,
