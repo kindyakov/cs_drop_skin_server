@@ -45,11 +45,6 @@ const envSchema = z.object({
       required_error: 'STEAM_API_KEY is required for Steam OAuth',
     })
     .min(1),
-  STEAM_RETURN_URL: z
-    .string({
-      required_error: 'STEAM_RETURN_URL is required for Steam OAuth callback',
-    })
-    .url(),
 
   // ================================
   // VK OAUTH PROVIDER
@@ -64,11 +59,6 @@ const envSchema = z.object({
       required_error: 'VK_APP_SECRET is required for VkOAuth',
     })
     .min(1),
-  VK_CALLBACK_URL: z
-    .string({
-      required_error: 'VK_CALLBACK_URL is required for VK OAuth callback',
-    })
-    .url(),
 
   // ================================
   // EXTERNAL SERVICES
@@ -184,13 +174,11 @@ export const config = {
   // OAuth providers
   steam: {
     apiKey: validatedEnv.STEAM_API_KEY,
-    returnUrl: validatedEnv.STEAM_RETURN_URL,
   },
 
   vk: {
     appId: validatedEnv.VK_APP_ID,
     appSecret: validatedEnv.VK_APP_SECRET,
-    callbackUrl: validatedEnv.VK_CALLBACK_URL,
   },
 
   // External services

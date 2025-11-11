@@ -9,7 +9,7 @@ const prisma = new PrismaClient();
 passport.use(
   new SteamStrategy(
     {
-      returnURL: config.steam.returnUrl,
+      returnURL: `${config.server.url}/api/v1/auth/steam/return`,
       realm: config.server.url,
       apiKey: config.steam.apiKey,
     },

@@ -40,8 +40,8 @@ export const config = {
   jwt: { secret: string, expiresIn: string },
 
   // OAuth
-  steam: { apiKey: string, returnUrl: string },
-  vk: { appId: string, appSecret: string, callbackUrl: string },
+  steam: { apiKey: string },
+  vk: { appId: string, appSecret: string },
 
   // External services
   marketCs: { apiKey: string },

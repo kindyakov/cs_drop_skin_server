@@ -64,7 +64,11 @@ export const getCurrentUser = async (
 // ================================
 
 // Initialize VK ID service
-const vkidService = new VKIDService(config.vk.appId, config.vk.appSecret, config.vk.callbackUrl);
+const vkidService = new VKIDService(
+  config.vk.appId,
+  config.vk.appSecret,
+  `${config.server.url}/api/v1/auth/vkid/callback`
+);
 
 /**
  * Initiates VK ID OAuth 2.1 authentication flow
