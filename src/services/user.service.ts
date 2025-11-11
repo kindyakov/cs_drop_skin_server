@@ -1,5 +1,8 @@
 import { PrismaClient } from '@prisma/client';
-import type { IUserItem, IUserPublicProfile } from '../types/index.js';
+import type { IUserItem, IUserPublicProfile, ISellItemResponse } from '../types/index.js';
+import { NotFoundError, ValidationError } from '../utils/errors.util.js';
+import { logger } from '../middleware/logger.middleware.js';
+import { calculateSellPrice, getSiteCommissionPercentage } from '../config/business.config.js';
 
 const prisma = new PrismaClient();
 
@@ -48,14 +51,14 @@ export const getUserInventory = async (
     }
   });
 
-  // Конвертируем Decimal в number для price и добавляем информацию о кейсе
+  // Цены теперь в копейках (Int) - добавляем информацию о кейсе
   return items.map((userItem) => {
     const caseInfo = itemToCaseMap.get(userItem.itemId);
     return {
       ...userItem,
       item: {
         ...userItem.item,
-        price: userItem.item.price.toNumber(),
+        price: userItem.item.price,
       },
       case: caseInfo || null,
     };
@@ -150,14 +153,14 @@ export const getProfileById = async (userId: string): Promise<IUserPublicProfile
     }
   });
 
-  // Конвертируем Decimal в number для price и добавляем информацию о кейсе
+  // Цены теперь в копейках (Int) - добавляем информацию о кейсе
   const inventory = inventoryRaw.map((userItem) => {
     const caseInfo = itemToCaseMap.get(userItem.itemId);
     return {
       ...userItem,
       item: {
         ...userItem.item,
-        price: userItem.item.price.toNumber(),
+        price: userItem.item.price,
       },
       case: caseInfo || null, // Добавляем информацию о кейсе (slug и imageUrl)
     };
@@ -205,7 +208,7 @@ export const getProfileById = async (userId: string): Promise<IUserPublicProfile
     bestDrop: user.bestDrop
       ? {
           ...user.bestDrop,
-          price: user.bestDrop.price.toNumber(),
+          price: user.bestDrop.price,
         }
       : null,
     inventory,
@@ -271,8 +274,8 @@ export const updateUserStats = async (
         select: { price: true },
       });
 
-      // Если новый предмет дороже - обновить
-      if (!currentBestDrop || itemPrice > currentBestDrop.price.toNumber()) {
+      // Если новый предмет дороже - обновить (цены в копейках)
+      if (!currentBestDrop || itemPrice > currentBestDrop.price) {
         bestDropItemId = itemId;
       }
     } else {
@@ -291,5 +294,97 @@ export const updateUserStats = async (
   } catch (error) {
     // НЕ бросаем ошибку - это не должно прерывать основной функционал
     console.error('Ошибка обновления статистики пользователя:', error);
+  }
+};
+
+/**
+ * Продать скин обратно сайту за 80% от цены
+ * @param userId - ID пользователя
+ * @param userItemId - ID предмета в инвентаре пользователя
+ * @returns Информация о продаже
+ */
+export const sellUserItem = async (
+  userId: string,
+  userItemId: string
+): Promise<ISellItemResponse> => {
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Найти предмет в инвентаре пользователя
+      const userItem = await tx.userItem.findFirst({
+        where: {
+          id: userItemId,
+          userId,
+        },
+        include: {
+          item: true,
+        },
+      });
+
+      if (!userItem) {
+        throw new NotFoundError('Предмет не найден в вашем инвентаре');
+      }
+
+      // 2. Проверить статус предмета (можно продать только OWNED)
+      if (userItem.status !== 'OWNED') {
+        throw new ValidationError(
+          `Невозможно продать предмет со статусом "${userItem.status}". Продать можно только предметы со статусом "OWNED"`
+        );
+      }
+
+      // 3. Рассчитать цену продажи (80% от рыночной цены)
+      const originalPrice = userItem.item.price;
+      const soldPrice = calculateSellPrice(originalPrice);
+
+      logger.info('Продажа скина', {
+        userId,
+        userItemId,
+        itemName: userItem.item.displayName,
+        originalPrice,
+        soldPrice,
+        commissionPercentage: getSiteCommissionPercentage(),
+      });
+
+      // 4. Обновить статус предмета на SOLD
+      await tx.userItem.update({
+        where: { id: userItemId },
+        data: { status: 'SOLD' },
+      });
+
+      // 5. Начислить деньги на баланс пользователя
+      const updatedUser = await tx.user.update({
+        where: { id: userId },
+        data: {
+          balance: {
+            increment: soldPrice,
+          },
+        },
+        select: {
+          balance: true,
+        },
+      });
+
+      return {
+        soldPrice,
+        newBalance: updatedUser.balance,
+        itemName: userItem.item.displayName,
+        originalPrice,
+      };
+    });
+
+    logger.info('Скин успешно продан', {
+      userId,
+      userItemId,
+      soldPrice: result.soldPrice,
+      newBalance: result.newBalance,
+    });
+
+    return result;
+  } catch (error) {
+    logger.error('Ошибка продажи скина', {
+      error,
+      userId,
+      userItemId,
+    });
+    throw error;
   }
 };

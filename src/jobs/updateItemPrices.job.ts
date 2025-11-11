@@ -64,7 +64,7 @@ export const startUpdateItemPricesJob = () => {
           prices.push(result.price);
 
           // Логировать значительные изменения цены (более 10%)
-          const oldPrice = item.price.toNumber();
+          const oldPrice = item.price;
           const priceChange = Math.abs((result.price - oldPrice) / oldPrice) * 100;
 
           if (priceChange > 10) {

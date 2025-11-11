@@ -74,3 +74,13 @@ export interface IUserPublicProfile {
 export interface IUpdateTradeUrlInput {
   tradeUrl: string;
 }
+
+/**
+ * Результат продажи скина
+ */
+export interface ISellItemResponse {
+  soldPrice: number; // Сумма, полученная пользователем (в копейках)
+  newBalance: number; // Новый баланс пользователя (в копейках)
+  itemName: string; // Название проданного предмета
+  originalPrice: number; // Оригинальная цена скина (в копейках)
+}

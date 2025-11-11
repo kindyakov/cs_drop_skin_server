@@ -12,7 +12,9 @@ export interface ICaseOpening {
 // Результат открытия кейса
 export interface ICaseOpeningResult {
   success: boolean;
-  item: IItem;
+  item: IItem & {
+    sellPrice: number; // Цена продажи предмета (80% от рыночной цены, в копейках)
+  };
   newBalance: number;
 }
 

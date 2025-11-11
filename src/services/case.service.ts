@@ -53,10 +53,10 @@ export const getAllActiveCases = async (filters?: ICaseFilters): Promise<ICasePu
       orderBy: { name: 'asc' },
     });
 
-    // Конвертируем Decimal в number для price
+    // Цена теперь в копейках (Int)
     return cases.map((caseData) => ({
       ...caseData,
-      price: caseData.price.toNumber(),
+      price: caseData.price,
     }));
   } catch (error) {
     logger.error('Ошибка получения кейсов', { error, filters });
@@ -77,8 +77,8 @@ export const getFilteredCases = async (): Promise<IFiltersCases> => {
     });
 
     return {
-      from: result._min.price?.toNumber() ?? 0,
-      to: result._max.price?.toNumber() ?? 0,
+      from: result._min.price ?? 0,
+      to: result._max.price ?? 0,
     };
   } catch (error) {
     logger.error('Ошибка получения фильтров для кейсов', { error });
@@ -109,16 +109,16 @@ export const getCaseBySlug = async (slug: string): Promise<ICaseWithItems> => {
       throw new NotFoundError('Кейс не найден');
     }
 
-    // Конвертировать Decimal в number
+    // Цены теперь в копейках (Int)
     const formattedCase: ICaseWithItems = {
       ...caseData,
-      price: caseData.price.toNumber(),
+      price: caseData.price,
       items: caseData.items.map((ci) => ({
         id: ci.id,
         chancePercent: ci.chancePercent.toNumber(),
         item: {
           ...ci.item,
-          price: ci.item.price.toNumber(),
+          price: ci.item.price,
         },
       })),
     };
@@ -141,6 +141,6 @@ export const getCaseById = async (id: string): Promise<ICase> => {
 
   return {
     ...caseData,
-    price: caseData.price.toNumber(),
+    price: caseData.price,
   };
 };

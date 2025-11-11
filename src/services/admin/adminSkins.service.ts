@@ -1,5 +1,5 @@
-import { skinsCache, CachedSkin } from '../../utils/skinsCache.util.js';
-import { csApiService, SyncResult } from '../csApi.service.js';
+import { skinsCache, type CachedSkin } from '../../utils/skinsCache.util.js';
+import { csApiService, type SyncResult } from '../csApi.service.js';
 import { logger } from '../../middleware/logger.middleware.js';
 
 /**
@@ -143,6 +143,14 @@ class AdminSkinsService {
 
     if (filters.souvenir !== undefined) {
       filtered = filtered.filter((skin) => skin.souvenir === filters.souvenir);
+    }
+
+    if (filters.weaponId !== undefined) {
+      filtered = filtered.filter((skin) => skin.weapon.id === filters.weaponId);
+    }
+
+    if (filters.rarityId !== undefined) {
+      filtered = filtered.filter((skin) => skin.rarity.id === filters.rarityId);
     }
 
     // Сортировка

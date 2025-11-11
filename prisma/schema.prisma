@@ -104,7 +104,7 @@ model Case {
   slug        String   @unique
   description String?
   imageUrl    String
-  price       Decimal  @db.Decimal(10, 2)
+  price       Int
   isActive    Boolean  @default(true)
 
   // Механика открытий кейса
@@ -136,7 +136,7 @@ model Item {
   categoryName   String?
   quality        String?
   imageUrl       String
-  price          Decimal    @db.Decimal(10, 2)
+  price          Int
   rarity         ItemRarity
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt

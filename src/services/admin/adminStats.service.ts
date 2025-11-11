@@ -150,10 +150,10 @@ export const getPopularCases = async (limit: number = 10): Promise<IPopularCase[
     // Создать map для быстрого доступа
     const casesMap = new Map(cases.map((c) => [c.id, c]));
 
-    // Собрать результат
+    // Собрать результат (цены теперь в копейках)
     const popularCases: IPopularCase[] = casesWithStats.map((stat) => {
       const caseData = casesMap.get(stat.caseId);
-      const price = caseData?.price ? caseData.price.toNumber() : 0;
+      const price = caseData?.price ? caseData.price : 0;
       return {
         id: stat.caseId,
         name: caseData?.name || 'Unknown',

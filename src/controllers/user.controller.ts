@@ -97,3 +97,22 @@ export const updateTradeUrl = async (
     next(error);
   }
 };
+
+/**
+ * Продать скин обратно сайту за 80% от цены
+ */
+export const sellItem = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+    const { id: userItemId } = req.params;
+
+    const result = await userService.sellUserItem(userId, userItemId);
+    successResponse(res, result, 'Скин успешно продан');
+  } catch (error) {
+    next(error);
+  }
+};

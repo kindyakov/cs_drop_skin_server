@@ -4,6 +4,7 @@ import { ValidationError, NotFoundError } from '../utils/index.js';
 import { emitCaseOpening } from '../config/socket.config.js';
 import { logger } from '../middleware/logger.middleware.js';
 import * as userService from './user.service.js';
+import { calculateSellPrice } from '../config/business.config.js';
 
 const prisma = new PrismaClient();
 
@@ -21,10 +22,7 @@ const selectRandomItem = (items: Array<{ itemId: string; chancePercent: number }
   return items[items.length - 1].itemId;
 };
 
-export const openCase = async (
-  userId: string,
-  caseId: string
-): Promise<ICaseOpeningResult> => {
+export const openCase = async (userId: string, caseId: string): Promise<ICaseOpeningResult> => {
   const result = await prisma.$transaction(async (tx) => {
     // 1. Получить пользователя
     const user = await tx.user.findUnique({
@@ -45,15 +43,15 @@ export const openCase = async (
       throw new NotFoundError('Кейс не найден или неактивен');
     }
 
-    // 3. Проверить баланс
-    const casePrice = caseData.price.toNumber();
+    // 3. Проверить баланс (цена теперь в копейках)
+    const casePrice = caseData.price;
     if (user.balance < casePrice) {
       throw new ValidationError('Недостаточно средств');
     }
 
     // 4. Выбрать случайный предмет
     const selectedItemId = selectRandomItem(
-      caseData.items.map(ci => ({
+      caseData.items.map((ci) => ({
         itemId: ci.itemId,
         chancePercent: ci.chancePercent.toNumber(),
       }))
@@ -134,28 +132,34 @@ export const openCase = async (
   // === USER STATS UPDATE ===
   // Обновить статистику пользователя (favorite case, best drop)
   try {
-    await userService.updateUserStats(userId, caseId, result.wonItem.id, result.wonItem.price.toNumber());
+    await userService.updateUserStats(userId, caseId, result.wonItem.id, result.wonItem.price);
   } catch (statsError) {
     // Не прерываем выполнение если обновление статистики не удалось
     logger.warn('Не удалось обновить статистику пользователя', {
       statsError,
       userId,
-      caseId
+      caseId,
     });
   }
+
+  // Рассчитать цену продажи (80% от рыночной цены)
+  const sellPrice = calculateSellPrice(result.wonItem.price);
 
   logger.info('Кейс успешно открыт', {
     userId,
     caseId,
     itemId: result.wonItem.id,
     newBalance: result.newBalance,
+    itemPrice: result.wonItem.price,
+    sellPrice,
   });
 
   return {
     success: true,
     item: {
       ...result.wonItem,
-      price: result.wonItem.price.toNumber(),
+      price: result.wonItem.price,
+      sellPrice,
     },
     newBalance: result.newBalance,
   };
@@ -174,13 +178,13 @@ export const getRecentOpenings = async (limit = 20): Promise<ILiveFeedEvent[]> =
           weaponName: true,
           skinName: true,
           imageUrl: true,
-          rarity: true
-        }
+          rarity: true,
+        },
       },
     },
   });
 
-  return openings.map(opening => ({
+  return openings.map((opening) => ({
     id: opening.id,
     userId: opening.user.id,
     username: opening.user.username,

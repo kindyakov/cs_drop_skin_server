@@ -39,7 +39,7 @@ export const getAllCategories = async (): Promise<ICategoryWithCases[]> => {
       ...category,
       cases: category.cases.map((caseData) => ({
         ...caseData,
-        price: caseData.price.toNumber(),
+        price: caseData.price,
       })),
     }));
 
@@ -81,7 +81,7 @@ export const getCategoryById = async (id: string): Promise<ICategoryWithCases> =
       ...category,
       cases: category.cases.map((caseData) => ({
         ...caseData,
-        price: caseData.price.toNumber(),
+        price: caseData.price,
       })),
     };
   } catch (error) {
@@ -116,12 +116,12 @@ export const getCategoryBySlug = async (slug: string): Promise<ICategoryWithCase
       throw new NotFoundError('Категория не найдена');
     }
 
-    // Конвертируем Decimal в number для price
+    // Цены теперь в копейках (Int)
     return {
       ...category,
       cases: category.cases.map((caseData) => ({
         ...caseData,
-        price: caseData.price.toNumber(),
+        price: caseData.price,
       })),
     };
   } catch (error) {
