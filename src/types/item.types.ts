@@ -1,4 +1,5 @@
-import { ItemRarity, ItemStatus } from './constants';
+import { ItemStatus } from './constants';
+import { ItemRarity } from '@prisma/client';
 
 // Базовый интерфейс предмета (из Prisma)
 export interface IItem {

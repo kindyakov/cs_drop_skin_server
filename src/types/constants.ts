@@ -21,6 +21,7 @@ export const TransactionStatuses = {
 export type TransactionStatus = (typeof TransactionStatuses)[keyof typeof TransactionStatuses];
 
 // Редкость предметов
+// ВАЖНО: Должно соответствовать enum ItemRarity в Prisma schema
 export const ItemRarities = {
   CONSUMER: 'CONSUMER',
   INDUSTRIAL: 'INDUSTRIAL',

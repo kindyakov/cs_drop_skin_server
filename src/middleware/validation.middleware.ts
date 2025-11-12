@@ -197,3 +197,47 @@ export const validateTradeUrl = [
     ),
   handleValidationErrors,
 ];
+
+/**
+ * Валидация для расчета вероятностей (Admin)
+ * Используется для предпросмотра вероятностей перед добавлением скинов в кейс
+ */
+export const validateCalculateProbabilities = [
+  body('marketHashNames')
+    .isArray({ min: 1, max: 50 })
+    .withMessage('marketHashNames должен быть массивом от 1 до 50 элементов'),
+  body('marketHashNames.*')
+    .isString()
+    .withMessage('Каждый элемент marketHashNames должен быть строкой')
+    .isLength({ min: 3, max: 255 })
+    .withMessage('Каждый marketHashName должен быть от 3 до 255 символов'),
+  body('algorithm')
+    .notEmpty()
+    .withMessage('algorithm обязателен')
+    .isString()
+    .withMessage('algorithm должен быть строкой')
+    .isIn(['price', 'rarity', 'combined'])
+    .withMessage('algorithm должен быть одним из: price, rarity, combined'),
+  body('options')
+    .optional()
+    .isObject()
+    .withMessage('options должен быть объектом'),
+  body('options.minChance')
+    .optional()
+    .isFloat({ min: 0.01, max: 100 })
+    .withMessage('minChance должен быть от 0.01 до 100'),
+  body('options.maxChance')
+    .optional()
+    .isFloat({ min: 0.01, max: 100 })
+    .withMessage('maxChance должен быть от 0.01 до 100'),
+  // Проверка, что maxChance >= minChance
+  body('options').custom((options) => {
+    if (options && options.minChance && options.maxChance) {
+      if (parseFloat(options.minChance) > parseFloat(options.maxChance)) {
+        throw new Error('minChance не может быть больше maxChance');
+      }
+    }
+    return true;
+  }),
+  handleValidationErrors,
+];

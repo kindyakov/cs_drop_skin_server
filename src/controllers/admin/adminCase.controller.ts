@@ -1,7 +1,9 @@
 import { Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware.js';
 import * as adminCaseService from '../../services/admin/adminCase.service.js';
+import * as probabilityCalculationService from '../../services/probabilityCalculation.service.js';
 import { successResponse } from '../../utils/index.js';
+import { ICalculateProbabilitiesInput } from '../../types/probability.types.js';
 
 /**
  * Получить все кейсы (для админки)
@@ -109,6 +111,32 @@ export const addItemsToCase = async (
       message: warnings.length > 0
         ? `Добавлено ${caseWithItems.items.length} скинов с ${warnings.length} ошибками`
         : 'Предметы успешно добавлены в кейс',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Рассчитать вероятности выпадения для списка скинов
+ * Этот эндпоинт НЕ добавляет скины в кейс, а только возвращает рассчитанные вероятности
+ * Используется для предпросмотра перед добавлением
+ */
+export const calculateProbabilities = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const input: ICalculateProbabilitiesInput = req.body;
+    const result = await probabilityCalculationService.calculateProbabilities(input);
+
+    res.json({
+      success: true,
+      data: result,
+      message: result.warnings && result.warnings.length > 0
+        ? `Вероятности рассчитаны для ${result.items.length} скинов с ${result.warnings.length} предупреждениями`
+        : `Вероятности успешно рассчитаны для ${result.items.length} скинов`,
     });
   } catch (error) {
     next(error);

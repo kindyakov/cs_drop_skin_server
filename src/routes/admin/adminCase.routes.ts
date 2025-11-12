@@ -7,6 +7,7 @@ import {
   validateCreateCase,
   validateUpdateCase,
   validateAddItemsToCase,
+  validateCalculateProbabilities,
 } from '../../middleware/index.js';
 
 const router = Router();
@@ -34,6 +35,13 @@ router.put('/:id', validateUpdateCase, adminCaseController.updateCase as any);
 
 // Удалить кейс
 router.delete('/:id', adminCaseController.deleteCase as any);
+
+// Рассчитать вероятности для списка скинов (предпросмотр перед добавлением)
+router.post(
+  '/calculate-probabilities',
+  validateCalculateProbabilities,
+  adminCaseController.calculateProbabilities as any
+);
 
 // Добавить предметы в кейс
 router.post(

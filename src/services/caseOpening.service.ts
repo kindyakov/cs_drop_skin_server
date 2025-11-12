@@ -14,7 +14,7 @@ const selectRandomItem = (items: Array<{ itemId: string; chancePercent: number }
 
   for (const caseItem of items) {
     cumulative += caseItem.chancePercent;
-    if (random <= cumulative) {
+    if (random < cumulative) {
       return caseItem.itemId;
     }
   }
