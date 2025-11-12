@@ -36,6 +36,7 @@ enum ItemRarity {
   CLASSIFIED
   COVERT
   KNIFE
+  CONTRABAND
 }
 
 enum ItemStatus {

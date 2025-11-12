@@ -30,6 +30,7 @@ export const ItemRarities = {
   CLASSIFIED: 'CLASSIFIED',
   COVERT: 'COVERT',
   KNIFE: 'KNIFE',
+  CONTRABAND: 'CONTRABAND',
 } as const;
 export type ItemRarity = (typeof ItemRarities)[keyof typeof ItemRarities];
 
