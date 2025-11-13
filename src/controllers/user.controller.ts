@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
 import * as userService from '../services/user.service.js';
 import { successResponse } from '../utils/index.js';
+import { ItemStatuses, type ItemStatus } from '../types/constants.js';
+import { ValidationError } from '../utils/errors.util.js';
 
 /**
  * Получить профиль пользователя по ID (публичный endpoint)
@@ -29,7 +31,7 @@ export const getUser = async (
 };
 
 /**
- * Получить инвентарь текущего пользователя (с пагинацией)
+ * Получить инвентарь текущего пользователя (с пагинацией и фильтрацией)
  */
 export const getInventory = async (
   req: AuthenticatedRequest,
@@ -40,11 +42,29 @@ export const getInventory = async (
     const userId = req.user!.userId;
     const limit = parseInt(req.query.limit as string) || 21;
     const offset = parseInt(req.query.offset as string) || 0;
+    const status = req.query.status as string | undefined;
 
+    // Валидация status параметра
+    let statusFilter: ItemStatus | undefined;
+    if (status) {
+      if (status === 'OWNED') {
+        statusFilter = ItemStatuses.OWNED;
+        // Для фильтра OWNED убираем пагинацию, показываем все доступные предметы
+        const inventory = await userService.getUserInventory(userId, undefined, undefined, statusFilter);
+
+        successResponse(res, {
+          items: inventory,
+          isFiltered: true,
+        });
+        return;
+      } else {
+        throw new ValidationError('Некорректный статус. Допустимые значения: OWNED');
+      }
+    }
+
+    // Обычная логика с пагинацией
     const inventory = await userService.getUserInventory(userId, limit, offset);
-
-    // Получить общее количество для информации
-    const totalItems = await userService.getUserInventory(userId).then((items) => items.length);
+    const totalItems = await userService.getUserInventory(userId, undefined, undefined, statusFilter).then((items) => items.length);
 
     successResponse(res, {
       items: inventory,
@@ -54,6 +74,7 @@ export const getInventory = async (
         total: totalItems,
         hasMore: offset + inventory.length < totalItems,
       },
+      isFiltered: false,
     });
   } catch (error) {
     next(error);
