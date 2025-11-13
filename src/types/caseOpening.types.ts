@@ -1,4 +1,4 @@
-import { IItem } from './item.types';
+import { IItem, IUserItem } from './item.types';
 
 // История открытия
 export interface ICaseOpening {
@@ -12,8 +12,9 @@ export interface ICaseOpening {
 // Результат открытия кейса
 export interface ICaseOpeningResult {
   success: boolean;
+  userItem: Omit<IUserItem, 'item' | 'case'>;
   item: IItem & {
-    sellPrice: number; // Цена продажи предмета (80% от рыночной цены, в копейках)
+    sellPrice: number; // Цена продажи предмета (n% от рыночной цены, в копейках)
   };
   newBalance: number;
 }

@@ -156,10 +156,14 @@ export const getProfileById = async (userId: string): Promise<IUserPublicProfile
   // Цены теперь в копейках (Int) - добавляем информацию о кейсе
   const inventory = inventoryRaw.map((userItem) => {
     const caseInfo = itemToCaseMap.get(userItem.itemId);
+    // Рассчитать цену продажи (n% от рыночной цены)
+    const sellPrice = calculateSellPrice(userItem.item.price);
+
     return {
       ...userItem,
       item: {
         ...userItem.item,
+        sellPrice,
         price: userItem.item.price,
       },
       case: caseInfo || null, // Добавляем информацию о кейсе (slug и imageUrl)
@@ -298,7 +302,7 @@ export const updateUserStats = async (
 };
 
 /**
- * Продать скин обратно сайту за 80% от цены
+ * Продать скин обратно сайту за n% от цены
  * @param userId - ID пользователя
  * @param userItemId - ID предмета в инвентаре пользователя
  * @returns Информация о продаже
@@ -331,7 +335,7 @@ export const sellUserItem = async (
         );
       }
 
-      // 3. Рассчитать цену продажи (80% от рыночной цены)
+      // 3. Рассчитать цену продажи (n% от рыночной цены)
       const originalPrice = userItem.item.price;
       const soldPrice = calculateSellPrice(originalPrice);
 

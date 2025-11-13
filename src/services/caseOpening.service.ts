@@ -73,7 +73,7 @@ export const openCase = async (userId: string, caseId: string): Promise<ICaseOpe
     });
 
     // 7. Добавить предмет в инвентарь
-    await tx.userItem.create({
+    const userItem = await tx.userItem.create({
       data: {
         userId,
         itemId: wonItem.id,
@@ -100,6 +100,7 @@ export const openCase = async (userId: string, caseId: string): Promise<ICaseOpe
     return {
       user,
       caseData,
+      userItem,
       wonItem,
       newOpening,
       newBalance,
@@ -142,7 +143,7 @@ export const openCase = async (userId: string, caseId: string): Promise<ICaseOpe
     });
   }
 
-  // Рассчитать цену продажи (80% от рыночной цены)
+  // Рассчитать цену продажи (n% от рыночной цены)
   const sellPrice = calculateSellPrice(result.wonItem.price);
 
   logger.info('Кейс успешно открыт', {
@@ -156,6 +157,7 @@ export const openCase = async (userId: string, caseId: string): Promise<ICaseOpe
 
   return {
     success: true,
+    userItem: result.userItem,
     item: {
       ...result.wonItem,
       price: result.wonItem.price,

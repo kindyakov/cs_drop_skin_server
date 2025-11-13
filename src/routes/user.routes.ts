@@ -25,8 +25,8 @@ router.patch(
   userController.updateTradeUrl as any
 );
 
-// Продать скин обратно сайту за 80% от цены (требует авторизации)
-router.post('/items/:id/sell', authenticate, checkUserBlocked, userController.sellItem as any);
+// Продать скин обратно сайту за n% от цены (требует авторизации)
+router.post('/item/:id/sell', authenticate, checkUserBlocked, userController.sellItem as any);
 
 // Получить профиль пользователя по ID (ПОСЛЕДНИЙ!)
 router.get('/:id', userController.getUser as any);

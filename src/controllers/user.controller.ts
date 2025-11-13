@@ -99,7 +99,7 @@ export const updateTradeUrl = async (
 };
 
 /**
- * Продать скин обратно сайту за 80% от цены
+ * Продать скин обратно сайту за n% от цены
  */
 export const sellItem = async (
   req: AuthenticatedRequest,
