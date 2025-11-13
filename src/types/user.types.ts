@@ -84,3 +84,13 @@ export interface ISellItemResponse {
   itemName: string; // Название проданного предмета
   originalPrice: number; // Оригинальная цена скина (в копейках)
 }
+
+/**
+ * Результат массовой продажи всех предметов
+ */
+export interface ISellAllItemsResponse {
+  totalSold: number; // Количество проданных предметов
+  totalAmount: number; // Общая сумма продажи (в копейках)
+  newBalance: number; // Новый баланс пользователя (в копейках)
+  itemNames: string[]; // Названия проданных предметов
+}

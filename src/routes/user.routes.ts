@@ -28,6 +28,9 @@ router.patch(
 // Продать скин обратно сайту за n% от цены (требует авторизации)
 router.post('/item/:id/sell', authenticate, checkUserBlocked, userController.sellItem as any);
 
+// Продать все предметы со статусом OWNED (требует авторизации)
+router.post('/items/sell-all', authenticate, checkUserBlocked, userController.sellAllItems as any);
+
 // Получить профиль пользователя по ID (ПОСЛЕДНИЙ!)
 router.get('/:id', userController.getUser as any);
 

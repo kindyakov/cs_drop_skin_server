@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-import type { IUserItem, IUserPublicProfile, ISellItemResponse } from '../types/index.js';
+import { PrismaClient, ItemStatus } from '@prisma/client';
+import type { IUserItem, IUserPublicProfile, ISellItemResponse, ISellAllItemsResponse } from '../types/index.js';
 import { NotFoundError, ValidationError } from '../utils/errors.util.js';
 import { logger } from '../middleware/logger.middleware.js';
 import { calculateSellPrice, getSiteCommissionPercentage } from '../config/business.config.js';
@@ -8,14 +8,21 @@ const prisma = new PrismaClient();
 
 /**
  * Получить инвентарь пользователя с пагинацией
+ * @param status - Фильтр по статусу (по умолчанию все: OWNED, SOLD, WITHDRAWN)
  */
 export const getUserInventory = async (
   userId: string,
   limit: number = 21,
-  offset: number = 0
+  offset: number = 0,
+  status?: ItemStatus | ItemStatus[]
 ): Promise<IUserItem[]> => {
+  // Если status не передан, показываем все статусы
+  const statusFilter = status
+    ? (Array.isArray(status) ? { in: status } : status)
+    : { in: ['OWNED', 'SOLD', 'WITHDRAWN'] as ItemStatus[] };
+
   const items = await prisma.userItem.findMany({
-    where: { userId, status: { in: ['OWNED', 'SOLD', 'WITHDRAWN'] } },
+    where: { userId, status: statusFilter },
     include: { item: true },
     orderBy: { acquiredAt: 'desc' },
     take: limit,
@@ -388,6 +395,100 @@ export const sellUserItem = async (
       error,
       userId,
       userItemId,
+    });
+    throw error;
+  }
+};
+
+/**
+ * Продать все предметы пользователя со статусом OWNED обратно сайту
+ * @param userId - ID пользователя
+ * @returns Информация о массовой продаже
+ */
+export const sellAllUserItems = async (
+  userId: string
+): Promise<ISellAllItemsResponse> => {
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Найти все предметы пользователя со статусом OWNED
+      const userItems = await tx.userItem.findMany({
+        where: {
+          userId,
+          status: 'OWNED',
+        },
+        include: {
+          item: true,
+        },
+      });
+
+      // 2. Проверить, есть ли предметы для продажи
+      if (userItems.length === 0) {
+        throw new ValidationError(
+          'У вас нет предметов для продажи. Продать можно только предметы со статусом "OWNED"'
+        );
+      }
+
+      // 3. Рассчитать общую сумму продажи
+      let totalAmount = 0;
+      const itemNames: string[] = [];
+
+      userItems.forEach((userItem) => {
+        const soldPrice = calculateSellPrice(userItem.item.price);
+        totalAmount += soldPrice;
+        itemNames.push(userItem.item.displayName);
+      });
+
+      logger.info('Массовая продажа скинов', {
+        userId,
+        totalItems: userItems.length,
+        totalAmount,
+        commissionPercentage: getSiteCommissionPercentage(),
+      });
+
+      // 4. Обновить статус всех предметов на SOLD
+      await tx.userItem.updateMany({
+        where: {
+          userId,
+          status: 'OWNED',
+        },
+        data: {
+          status: 'SOLD',
+        },
+      });
+
+      // 5. Начислить деньги на баланс пользователя
+      const updatedUser = await tx.user.update({
+        where: { id: userId },
+        data: {
+          balance: {
+            increment: totalAmount,
+          },
+        },
+        select: {
+          balance: true,
+        },
+      });
+
+      return {
+        totalSold: userItems.length,
+        totalAmount,
+        newBalance: updatedUser.balance,
+        itemNames,
+      };
+    });
+
+    logger.info('Все скины успешно проданы', {
+      userId,
+      totalSold: result.totalSold,
+      totalAmount: result.totalAmount,
+      newBalance: result.newBalance,
+    });
+
+    return result;
+  } catch (error) {
+    logger.error('Ошибка массовой продажи скинов', {
+      error,
+      userId,
     });
     throw error;
   }

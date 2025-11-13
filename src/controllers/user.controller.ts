@@ -116,3 +116,25 @@ export const sellItem = async (
     next(error);
   }
 };
+
+/**
+ * Продать все предметы пользователя со статусом OWNED
+ */
+export const sellAllItems = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+
+    const result = await userService.sellAllUserItems(userId);
+    successResponse(
+      res,
+      result,
+      `Успешно продано предметов: ${result.totalSold} на сумму ${(result.totalAmount / 100).toFixed(2)}₽`
+    );
+  } catch (error) {
+    next(error);
+  }
+};
