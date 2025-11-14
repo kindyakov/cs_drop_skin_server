@@ -50,7 +50,12 @@ export const getInventory = async (
       if (status === 'OWNED') {
         statusFilter = ItemStatuses.OWNED;
         // Для фильтра OWNED убираем пагинацию, показываем все доступные предметы
-        const inventory = await userService.getUserInventory(userId, undefined, undefined, statusFilter);
+        const inventory = await userService.getUserInventory(
+          userId,
+          limit,
+          undefined,
+          statusFilter
+        );
 
         successResponse(res, {
           items: inventory,
@@ -64,7 +69,9 @@ export const getInventory = async (
 
     // Обычная логика с пагинацией
     const inventory = await userService.getUserInventory(userId, limit, offset);
-    const totalItems = await userService.getUserInventory(userId, undefined, undefined, statusFilter).then((items) => items.length);
+    const totalItems = await userService
+      .getUserInventory(userId, undefined, undefined, statusFilter)
+      .then((items) => items.length);
 
     successResponse(res, {
       items: inventory,

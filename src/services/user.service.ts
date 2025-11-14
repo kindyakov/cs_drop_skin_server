@@ -1,5 +1,10 @@
 import { PrismaClient, ItemStatus } from '@prisma/client';
-import type { IUserItem, IUserPublicProfile, ISellItemResponse, ISellAllItemsResponse } from '../types/index.js';
+import type {
+  IUserItem,
+  IUserPublicProfile,
+  ISellItemResponse,
+  ISellAllItemsResponse,
+} from '../types/index.js';
 import { NotFoundError, ValidationError } from '../utils/errors.util.js';
 import { logger } from '../middleware/logger.middleware.js';
 import { calculateSellPrice, getSiteCommissionPercentage } from '../config/business.config.js';
@@ -18,7 +23,9 @@ export const getUserInventory = async (
 ): Promise<IUserItem[]> => {
   // Если status не передан, показываем все статусы
   const statusFilter = status
-    ? (Array.isArray(status) ? { in: status } : status)
+    ? Array.isArray(status)
+      ? { in: status }
+      : status
     : { in: ['OWNED', 'SOLD', 'WITHDRAWN'] as ItemStatus[] };
 
   const items = await prisma.userItem.findMany({
@@ -405,9 +412,7 @@ export const sellUserItem = async (
  * @param userId - ID пользователя
  * @returns Информация о массовой продаже
  */
-export const sellAllUserItems = async (
-  userId: string
-): Promise<ISellAllItemsResponse> => {
+export const sellAllUserItems = async (userId: string): Promise<ISellAllItemsResponse> => {
   try {
     const result = await prisma.$transaction(async (tx) => {
       // 1. Найти все предметы пользователя со статусом OWNED
