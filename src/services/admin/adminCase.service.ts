@@ -150,6 +150,7 @@ export const createCase = async (input: ICreateCaseInput): Promise<ICase> => {
         price: input.price,
         categoryId: input.categoryId,
         isActive: input.isActive ?? true,
+        maxOpenings: input.maxOpenings ?? 0,
       },
     });
 
@@ -198,6 +199,7 @@ export const updateCase = async (id: string, input: IUpdateCaseInput): Promise<I
         price: input.price,
         categoryId: input.categoryId,
         isActive: input.isActive,
+        maxOpenings: input.maxOpenings,
       },
     });
 

@@ -61,6 +61,10 @@ export const validateCreateCase = [
     .withMessage('price должен быть положительным числом'),
   body('description').optional().isString().withMessage('description должен быть строкой'),
   body('isActive').optional().isBoolean().withMessage('isActive должен быть boolean'),
+  body('maxOpenings')
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage('maxOpenings должен быть неотрицательным числом'),
   handleValidationErrors,
 ];
 
@@ -81,6 +85,10 @@ export const validateUpdateCase = [
     .withMessage('price должен быть положительным числом'),
   body('description').optional().isString().withMessage('description должен быть строкой'),
   body('isActive').optional().isBoolean().withMessage('isActive должен быть boolean'),
+  body('maxOpenings')
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage('maxOpenings должен быть неотрицательным числом'),
   handleValidationErrors,
 ];
 
@@ -103,11 +111,17 @@ export const validateAddItemsToCase = [
     .withMessage('chancePercent должен быть от 0.01 до 100'),
   // Проверка суммы всех шансов - не должна превышать 100%
   body('items').custom((items) => {
-    const totalChance = items.reduce((sum: number, item: any) => sum + parseFloat(item.chancePercent), 0);
+    const totalChance = items.reduce(
+      (sum: number, item: any) => sum + parseFloat(item.chancePercent),
+      0
+    );
     const roundedTotal = Math.round(totalChance * 100) / 100; // Округляем для избежания ошибок с float
 
-    if (roundedTotal > 100.01) { // Допуск 0.01% для погрешности float
-      throw new Error(`Сумма шансов ${roundedTotal}% превышает максимум 100%. Пожалуйста, уменьшите значения.`);
+    if (roundedTotal > 100.01) {
+      // Допуск 0.01% для погрешности float
+      throw new Error(
+        `Сумма шансов ${roundedTotal}% превышает максимум 100%. Пожалуйста, уменьшите значения.`
+      );
     }
     return true;
   }),
@@ -218,10 +232,7 @@ export const validateCalculateProbabilities = [
     .withMessage('algorithm должен быть строкой')
     .isIn(['price', 'rarity', 'combined'])
     .withMessage('algorithm должен быть одним из: price, rarity, combined'),
-  body('options')
-    .optional()
-    .isObject()
-    .withMessage('options должен быть объектом'),
+  body('options').optional().isObject().withMessage('options должен быть объектом'),
   body('options.minChance')
     .optional()
     .isFloat({ min: 0.01, max: 100 })

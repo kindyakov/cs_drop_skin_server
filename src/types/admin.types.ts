@@ -12,6 +12,7 @@ export interface ICreateCaseInput {
   price: number; // в копейках
   categoryId?: string;
   isActive?: boolean; // по умолчанию true
+  maxOpenings?: number;
 }
 
 /**
@@ -24,6 +25,7 @@ export interface IUpdateCaseInput {
   price?: number;
   categoryId?: string;
   isActive?: boolean;
+  maxOpenings?: number;
 }
 
 /**
